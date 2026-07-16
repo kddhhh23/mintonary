@@ -1,0 +1,24 @@
+# ===== Flutter =====
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/build/
+app/.idea/
+
+# ===== Spring Boot =====
+server/build/
+server/.gradle/
+server/out/
+*.class
+
+# ===== 공통/보안 =====
+.DS_Store
+*.log
+application-secret.yml
+google-services.json
+serviceAccountKey.json
+
+# ===== IDE =====
+.idea/
+.vscode/
+*.iml
