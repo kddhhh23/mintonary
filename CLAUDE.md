@@ -6,8 +6,8 @@ Flutter 앱(`app/`) + Spring Boot 서버(`server/`) 모노레포.
 
 - `main` — 최종(배포 가능한) 버전만 유지
 - `dev` — 개발 내용을 모으는 브랜치, 완성된 기능을 여기에 머지
-- `feat/기능이름` — `dev`에서 분기해 기능 단위로 작업, 완료 후 `dev`에 머지
-- 흐름: `feat/기능이름` → `dev` → (안정화되면) `main`
+- `feat/도메인-기능` — `dev`에서 분기해 기능 단위로 작업, 완료 후 `dev`에 머지 (예: `feat/auth-login`)
+- 흐름: `feat/도메인-기능` → `dev` → (안정화되면) `main`
 - 머지 후 feature 브랜치 삭제
 
 ## 커밋 규칙
