@@ -56,4 +56,14 @@ public class Member extends BaseEntity {
 
     /** 탈퇴 시각, null이면 활성 회원 */
     private LocalDateTime deletedAt;
+
+    /** @param password BCrypt로 암호화된 비밀번호 */
+    public static Member create(String loginId, String password, String nickname, String email) {
+        Member member = new Member();
+        member.loginId = loginId;
+        member.password = password;
+        member.nickname = nickname;
+        member.email = email;
+        return member;
+    }
 }
