@@ -1,11 +1,53 @@
 import 'package:flutter/material.dart';
 
+import '../services/auth_api.dart';
+
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
 
 /// 로그인 화면
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _idController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  /// 요청 중이면 true — 버튼을 잠가 중복 요청을 막는다
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    setState(() => _loading = true);
+    try {
+      final token = await AuthApi.login(
+        _idController.text.trim(),
+        _passwordController.text,
+      );
+      if (!mounted) return;
+      // TODO: 토큰 저장 후 홈 화면으로 이동
+      _showMessage('로그인 성공 (토큰 ${token.length}자)');
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,18 +93,22 @@ class LoginScreen extends StatelessWidget {
               const SizedBox(height: 48),
 
               // 아이디 입력
-              const _InputField(hint: '아이디'),
+              _InputField(hint: '아이디', controller: _idController),
 
               const SizedBox(height: 14),
 
               // 비밀번호 입력 (obscure: 입력값을 ●로 가림)
-              const _InputField(hint: '비밀번호', obscure: true),
+              _InputField(
+                hint: '비밀번호',
+                controller: _passwordController,
+                obscure: true,
+              ),
 
               const SizedBox(height: 20),
-              
+
               // 로그인 버튼
               FilledButton(
-                onPressed: () {}, // TODO: 로그인 처리
+                onPressed: _loading ? null : _login,
                 style: FilledButton.styleFrom(
                   backgroundColor: _navy,
                   minimumSize: const Size.fromHeight(58), // 가로 꽉 채우고 높이 58
@@ -70,10 +116,22 @@ class LoginScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text(
-                  '로그인',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-                ),
+                child: _loading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        '로그인',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
               ),
 
               const SizedBox(height: 20),
@@ -117,10 +175,17 @@ class LoginScreen extends StatelessWidget {
 
 /// 아이디, 비밀번호 공용 입력 필드
 class _InputField extends StatelessWidget {
-  const _InputField({required this.hint, this.obscure = false});
+  const _InputField({
+    required this.hint,
+    required this.controller,
+    this.obscure = false,
+  });
 
   /// 입력 전에 보여줄 안내 문구
   final String hint;
+
+  /// 입력값을 읽어오는 컨트롤러
+  final TextEditingController controller;
 
   /// true면 비밀번호처럼 입력값을 가림
   final bool obscure;
@@ -128,6 +193,7 @@ class _InputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       obscureText: obscure,
       decoration: InputDecoration(
         hintText: hint,
