@@ -15,6 +15,7 @@ server/out/
 .DS_Store
 *.log
 application-secret.yml
+application-local.yaml
 google-services.json
 serviceAccountKey.json
 
