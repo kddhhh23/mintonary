@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'equipment_screen.dart';
+
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
 const _lightNavy = Color(0xFFE9EEF8); // 아이콘 배경
@@ -26,15 +28,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: _tab == 0
-            ? _HomeBody(onGoTab: _goTab)
-            // TODO: 기록 / 장비 / 지출 화면 만들면 교체
-            : Center(
-                child: Text(
-                  '${_tabNames[_tab]} 화면 준비 중',
-                  style: const TextStyle(color: _gray),
-                ),
-              ),
+        child: switch (_tab) {
+          0 => _HomeBody(onGoTab: _goTab),
+          2 => const EquipmentScreen(),
+          // TODO: 기록 / 지출 화면 만들면 교체
+          _ => Center(
+            child: Text(
+              '${_tabNames[_tab]} 화면 준비 중',
+              style: const TextStyle(color: _gray),
+            ),
+          ),
+        },
       ),
       bottomNavigationBar: _BottomBar(current: _tab, onTap: _goTab),
     );
