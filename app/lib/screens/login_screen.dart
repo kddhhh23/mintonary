@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../services/auth_api.dart';
+import '../widgets/app_text_field.dart';
+import 'signup_screen.dart';
 
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
@@ -45,8 +47,21 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// 가입에 성공하면 true를 들고 돌아온다
+  Future<void> _openSignup() async {
+    final signedUp = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const SignupScreen()),
+    );
+    if (signedUp == true && mounted) {
+      _showMessage('회원가입이 완료되었습니다. 로그인해 주세요.');
+    }
+  }
+
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -59,7 +74,6 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 100), // 상단 여백
-
               // 앱 로고
               Center(
                 child: ClipRRect(
@@ -93,12 +107,12 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 48),
 
               // 아이디 입력
-              _InputField(hint: '아이디', controller: _idController),
+              AppTextField(hint: '아이디', controller: _idController),
 
               const SizedBox(height: 14),
 
               // 비밀번호 입력 (obscure: 입력값을 ●로 가림)
-              _InputField(
+              AppTextField(
                 hint: '비밀번호',
                 controller: _passwordController,
                 obscure: true,
@@ -154,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const Text('|', style: TextStyle(color: _gray)),
                   TextButton(
-                    onPressed: () {}, // TODO: 회원가입 화면 이동
+                    onPressed: _openSignup,
                     child: const Text(
                       '회원가입',
                       style: TextStyle(
@@ -167,46 +181,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 아이디, 비밀번호 공용 입력 필드
-class _InputField extends StatelessWidget {
-  const _InputField({
-    required this.hint,
-    required this.controller,
-    this.obscure = false,
-  });
-
-  /// 입력 전에 보여줄 안내 문구
-  final String hint;
-
-  /// 입력값을 읽어오는 컨트롤러
-  final TextEditingController controller;
-
-  /// true면 비밀번호처럼 입력값을 가림
-  final bool obscure;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFFA8B0BF)),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 18,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
         ),
       ),
     );
