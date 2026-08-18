@@ -1,9 +1,14 @@
 package com.example.mintonary.member.dto;
 
+import com.example.mintonary.member.Gender;
+import com.example.mintonary.member.PlayerClass;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 
+/** 아이디·비밀번호·닉네임만 필수, 나머지는 선택 */
 public record SignupRequest(
 
         @NotBlank(message = "아이디를 입력해 주세요.")
@@ -20,6 +25,17 @@ public record SignupRequest(
 
         @Email(message = "이메일 형식이 올바르지 않습니다.")
         @Size(max = 100)
-        String email
+        String email,
+
+        @Past(message = "생년월일이 올바르지 않습니다.")
+        LocalDate birthDate,
+
+        Gender gender,
+
+        /** 구 대회 급수 */
+        PlayerClass localClass,
+
+        /** 전국 대회 급수 */
+        PlayerClass nationalClass
 ) {
 }

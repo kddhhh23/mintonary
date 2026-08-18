@@ -29,6 +29,12 @@ public class MemberService {
                 request.nickname(),
                 request.email()
         );
+        member.initProfile(
+                request.birthDate(),
+                request.gender(),
+                request.localClass(),
+                request.nationalClass()
+        );
         return memberRepository.save(member).getId();
     }
 }

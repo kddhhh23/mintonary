@@ -66,4 +66,17 @@ public class Member extends BaseEntity {
         member.email = email;
         return member;
     }
+
+    /** 가입 시 선택 입력한 프로필. 값이 없으면 null로 둔다 */
+    public void initProfile(
+            LocalDate birthDate,
+            Gender gender,
+            PlayerClass localClass,
+            PlayerClass nationalClass
+    ) {
+        this.birthDate = birthDate;
+        this.gender = gender;
+        this.localClass = localClass;
+        this.nationalClass = nationalClass;
+    }
 }
