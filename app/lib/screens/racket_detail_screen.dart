@@ -282,7 +282,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                     : '${currentString.name} · ${currentString.tension}lbs',
                 sub: currentString == null
                     ? '스트링 교체를 눌러 입력하세요'
-                    : '${_formatDate(currentString.date)} 교체 · ${_today.difference(currentString.date).inDays + 1}일째',
+                    : '${_formatDate(currentString.date)} 교체',
                 badge: dday == null
                     ? null
                     : dday >= 0
