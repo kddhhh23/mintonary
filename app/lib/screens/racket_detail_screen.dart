@@ -22,6 +22,14 @@ class _StringChange {
   final DateTime date;
 }
 
+/// 그립 교체 한 건 — 그립 교체 입력을 만들면 이름·종류로 구조화한다
+class _GripChange {
+  const _GripChange({required this.detail, required this.date});
+
+  final String detail;
+  final DateTime date;
+}
+
 /// 라켓 상세 화면
 class RacketDetailScreen extends StatefulWidget {
   const RacketDetailScreen({super.key, required this.name});
@@ -43,12 +51,23 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     _StringChange(name: 'BG65', tension: 25, date: DateTime(2025, 11, 2)),
   ];
 
-  /// 현재 스트링 = 가장 최근 교체 건
-  _StringChange get _currentString => _stringHistory.first;
+  /// 그립 교체 이력 — 최신순. 첫 항목이 현재 그립. 서버 연동 시 racket_grip_history에서 읽어온다
+  final List<_GripChange> _gripHistory = [
+    _GripChange(detail: '슈퍼그랩 · 오버그립', date: DateTime(2026, 8, 5)),
+    _GripChange(detail: '슈퍼그랩 · 오버그립', date: DateTime(2026, 6, 1)),
+  ];
 
-  /// 다음 교체 예정일 = 마지막 교체일 + 주기
-  DateTime get _nextStringDate =>
-      _currentString.date.add(Duration(days: _stringCycleDays));
+  /// 현재 스트링 = 가장 최근 교체 건. 이력을 모두 지우면 null
+  _StringChange? get _currentString =>
+      _stringHistory.isEmpty ? null : _stringHistory.first;
+
+  /// 현재 그립 = 가장 최근 교체 건. 이력을 모두 지우면 null
+  _GripChange? get _currentGrip =>
+      _gripHistory.isEmpty ? null : _gripHistory.first;
+
+  /// 다음 교체 예정일 = 마지막 교체일 + 주기. 현재 스트링이 없으면 null
+  DateTime? get _nextStringDate =>
+      _currentString?.date.add(Duration(days: _stringCycleDays));
 
   /// 시각을 뗀 오늘 날짜 — 날짜 차이 계산용
   DateTime get _today {
@@ -56,8 +75,8 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     return DateTime(now.year, now.month, now.day);
   }
 
-  /// 다음 교체일까지 남은 일수. 지났으면 음수
-  int get _stringDday => _nextStringDate.difference(_today).inDays;
+  /// 다음 교체일까지 남은 일수. 지났으면 음수, 현재 스트링이 없으면 null
+  int? get _stringDday => _nextStringDate?.difference(_today).inDays;
 
   /// 교체 입력을 받아 현재 스트링과 이력에 반영한다
   Future<void> _addStringChange() async {
@@ -69,13 +88,46 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) => _StringChangeSheet(
-        initialName: _currentString.name,
-        initialTension: _currentString.tension,
+        initialName: _currentString?.name,
+        initialTension: _currentString?.tension,
       ),
     );
     if (result != null) {
       setState(() => _stringHistory.insert(0, result)); // TODO: 서버에 저장
     }
+  }
+
+  /// 삭제 확인 다이얼로그 — 삭제를 누르면 true
+  Future<bool> _confirmDeleteHistory() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('교체 이력 삭제'),
+        content: const Text('이 교체 이력을 삭제할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: _red),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  Future<void> _deleteStringHistory(int index) async {
+    if (!await _confirmDeleteHistory()) return;
+    setState(() => _stringHistory.removeAt(index)); // TODO: 서버에서 삭제
+  }
+
+  Future<void> _deleteGripHistory(int index) async {
+    if (!await _confirmDeleteHistory()) return;
+    setState(() => _gripHistory.removeAt(index)); // TODO: 서버에서 삭제
   }
 
   /// 다이얼로그로 주기(일)를 입력받는다
@@ -116,6 +168,9 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final name = widget.name;
+    final currentString = _currentString;
+    final currentGrip = _currentGrip;
+    final dday = _stringDday;
     return Scaffold(
       appBar: AppBar(
         title: const Text('라켓 상세'),
@@ -222,36 +277,45 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
               const SizedBox(height: 12),
               _CurrentCard(
                 icon: Icons.linear_scale,
-                title: '${_currentString.name} · ${_currentString.tension}lbs',
-                sub:
-                    '${_formatDate(_currentString.date)} 교체 · ${_today.difference(_currentString.date).inDays + 1}일째',
-                badge: _stringDday >= 0 ? 'D-$_stringDday' : 'D+${-_stringDday}',
-                badgeColor: _stringDday <= 3 ? _red : _navy,
-                badgeBg: _stringDday <= 3 ? _lightRed : _lightNavy,
+                title: currentString == null
+                    ? '등록된 스트링 없음'
+                    : '${currentString.name} · ${currentString.tension}lbs',
+                sub: currentString == null
+                    ? '스트링 교체를 눌러 입력하세요'
+                    : '${_formatDate(currentString.date)} 교체 · ${_today.difference(currentString.date).inDays + 1}일째',
+                badge: dday == null
+                    ? null
+                    : dday >= 0
+                        ? 'D-$dday'
+                        : 'D+${-dday}',
+                badgeColor: dday != null && dday <= 3 ? _red : _navy,
+                badgeBg: dday != null && dday <= 3 ? _lightRed : _lightNavy,
                 // 교체 주기 · 다음 교체일 · 변경 버튼
-                extra: Row(
-                  children: [
-                    const Icon(Icons.autorenew, size: 16, color: _gray),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        '교체 주기 $_stringCycleDays일 · 다음 교체 ${_formatDate(_nextStringDate)}',
-                        style: const TextStyle(fontSize: 13, color: _gray),
+                extra: currentString == null
+                    ? null
+                    : Row(
+                        children: [
+                          const Icon(Icons.autorenew, size: 16, color: _gray),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              '교체 주기 $_stringCycleDays일 · 다음 교체 ${_formatDate(_nextStringDate!)}',
+                              style: const TextStyle(fontSize: 13, color: _gray),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: _editStringCycle,
+                            child: const Text(
+                              '변경',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: _navy,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: _editStringCycle,
-                      child: const Text(
-                        '변경',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: _navy,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
                 actionLabel: '스트링 교체',
                 onAction: _addStringChange,
               ),
@@ -260,10 +324,12 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
               _HistoryCard(
                 count: _stringHistory.length,
                 rows: [
-                  for (final change in _stringHistory)
+                  for (var i = 0; i < _stringHistory.length; i++)
                     _HistoryRow(
-                      date: _formatDate(change.date),
-                      detail: '${change.name} · ${change.tension}lbs',
+                      date: _formatDate(_stringHistory[i].date),
+                      detail:
+                          '${_stringHistory[i].name} · ${_stringHistory[i].tension}lbs',
+                      onDelete: () => _deleteStringHistory(i),
                     ),
                 ],
               ),
@@ -275,18 +341,24 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
               const SizedBox(height: 12),
               _CurrentCard(
                 icon: Icons.gesture,
-                title: '슈퍼그랩 · 오버그립',
-                sub: '2026.08.05 교체 · 13일째',
+                title: currentGrip == null ? '등록된 그립 없음' : currentGrip.detail,
+                sub: currentGrip == null
+                    ? '그립 교체를 눌러 입력하세요'
+                    : '${_formatDate(currentGrip.date)} 교체 · ${_today.difference(currentGrip.date).inDays + 1}일째',
                 actionLabel: '그립 교체',
                 onAction: () {}, // TODO: 그립 교체 입력
               ),
               const SizedBox(height: 12),
               // 그립 교체 이력 — 최신순
-              const _HistoryCard(
-                count: 2,
+              _HistoryCard(
+                count: _gripHistory.length,
                 rows: [
-                  _HistoryRow(date: '2026.08.05', detail: '슈퍼그랩 · 오버그립'),
-                  _HistoryRow(date: '2026.06.01', detail: '슈퍼그랩 · 오버그립'),
+                  for (var i = 0; i < _gripHistory.length; i++)
+                    _HistoryRow(
+                      date: _formatDate(_gripHistory[i].date),
+                      detail: _gripHistory[i].detail,
+                      onDelete: () => _deleteGripHistory(i),
+                    ),
                 ],
               ),
 
@@ -533,18 +605,20 @@ class _StringChangeSheet extends StatefulWidget {
     required this.initialTension,
   });
 
-  /// 현재 스트링 이름 — 같은 스트링으로 교체하는 경우가 많아 미리 채워둔다
-  final String initialName;
-  final int initialTension;
+  /// 현재 스트링 이름 — 같은 스트링으로 교체하는 경우가 많아 미리 채워둔다. 없으면 빈칸
+  final String? initialName;
+  final int? initialTension;
 
   @override
   State<_StringChangeSheet> createState() => _StringChangeSheetState();
 }
 
 class _StringChangeSheetState extends State<_StringChangeSheet> {
-  late final _nameController = TextEditingController(text: widget.initialName);
-  late final _tensionController =
-      TextEditingController(text: '${widget.initialTension}');
+  late final _nameController =
+      TextEditingController(text: widget.initialName ?? '');
+  late final _tensionController = TextEditingController(
+    text: widget.initialTension == null ? '' : '${widget.initialTension}',
+  );
 
   /// 교체일 — 기본은 오늘
   DateTime _date = DateTime.now();
@@ -679,12 +753,17 @@ class _SheetLabel extends StatelessWidget {
   }
 }
 
-/// 교체 이력 한 줄 — 날짜 · 내용
+/// 교체 이력 한 줄 — 날짜 · 내용 · 삭제 버튼
 class _HistoryRow extends StatelessWidget {
-  const _HistoryRow({required this.date, required this.detail});
+  const _HistoryRow({
+    required this.date,
+    required this.detail,
+    required this.onDelete,
+  });
 
   final String date;
   final String detail;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -697,6 +776,13 @@ class _HistoryRow extends StatelessWidget {
             detail,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
+        ),
+        IconButton(
+          onPressed: onDelete,
+          icon: const Icon(Icons.close, size: 18, color: _gray),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          visualDensity: VisualDensity.compact,
         ),
       ],
     );
