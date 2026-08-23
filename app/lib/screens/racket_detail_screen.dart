@@ -216,16 +216,17 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
+                    // 스펙 (racket_model)
                     const Row(
                       children: [
                         Expanded(
-                          child: _Stat(label: '구매일', value: '2025.11.02'),
+                          child: _Stat(label: '무게', value: '4U'),
                         ),
                         Expanded(
-                          child: _Stat(label: '가격', value: '320,000원'),
+                          child: _Stat(label: '밸런스', value: '헤드 헤비'),
                         ),
                         Expanded(
-                          child: _Stat(label: '사용', value: '9개월'),
+                          child: _Stat(label: '플렉스', value: '스티프'),
                         ),
                       ],
                     ),
@@ -234,18 +235,18 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
               ),
               const SizedBox(height: 12),
 
-              // 2. 스펙 (racket_model)
+              // 2. 사용 내역
               const _Card(
                 child: Row(
                   children: [
                     Expanded(
-                      child: _Stat(label: '무게', value: '4U'),
+                      child: _Stat(label: '구매일', value: '2025.11.02'),
                     ),
                     Expanded(
-                      child: _Stat(label: '밸런스', value: '헤드 헤비'),
+                      child: _Stat(label: '가격', value: '320,000원'),
                     ),
                     Expanded(
-                      child: _Stat(label: '플렉스', value: '스티프'),
+                      child: _Stat(label: '사용', value: '9개월'),
                     ),
                   ],
                 ),
