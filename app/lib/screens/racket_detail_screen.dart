@@ -221,9 +221,6 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                 icon: Icons.gesture,
                 title: '슈퍼그랩 · 오버그립',
                 sub: '2026.08.05 교체 · 13일째',
-                badge: '양호',
-                badgeColor: _navy,
-                badgeBg: _lightNavy,
                 actionLabel: '그립 교체',
                 onAction: () {}, // TODO: 그립 교체 입력
               ),
@@ -350,20 +347,22 @@ class _CurrentCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.sub,
-    required this.badge,
-    required this.badgeColor,
-    required this.badgeBg,
     required this.actionLabel,
     required this.onAction,
+    this.badge,
+    this.badgeColor,
+    this.badgeBg,
     this.extra,
   });
 
   final IconData icon;
   final String title;
   final String sub;
-  final String badge;
-  final Color badgeColor;
-  final Color badgeBg;
+
+  /// 상태 배지 — 없으면 표시 안 함
+  final String? badge;
+  final Color? badgeColor;
+  final Color? badgeBg;
   final String actionLabel;
   final VoidCallback onAction;
 
@@ -407,7 +406,8 @@ class _CurrentCard extends StatelessWidget {
                   ],
                 ),
               ),
-              _Badge(text: badge, color: badgeColor, bg: badgeBg),
+              if (badge != null)
+                _Badge(text: badge!, color: badgeColor!, bg: badgeBg!),
             ],
           ),
           if (extra != null) ...[
