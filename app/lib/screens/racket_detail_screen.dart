@@ -41,8 +41,8 @@ class RacketDetailScreen extends StatefulWidget {
 }
 
 class _RacketDetailScreenState extends State<RacketDetailScreen> {
-  /// 스트링 교체 주기(일) — 임시값. 서버 연동 시 my_racket에서 읽어온다
-  int _stringCycleDays = 30;
+  /// 다음 스트링 교체 알림 날짜 — 임시값. 서버 연동 시 my_racket에서 읽어온다
+  DateTime? _stringAlarmDate = DateTime(2026, 8, 21);
 
   /// 스트링 교체 이력 — 최신순. 첫 항목이 현재 스트링. 서버 연동 시 racket_string_history에서 읽어온다
   final List<_StringChange> _stringHistory = [
@@ -65,9 +65,6 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
   _GripChange? get _currentGrip =>
       _gripHistory.isEmpty ? null : _gripHistory.first;
 
-  /// 다음 교체 예정일 = 마지막 교체일 + 주기. 현재 스트링이 없으면 null
-  DateTime? get _nextStringDate =>
-      _currentString?.date.add(Duration(days: _stringCycleDays));
 
   /// 시각을 뗀 오늘 날짜 — 날짜 차이 계산용
   DateTime get _today {
@@ -75,8 +72,8 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     return DateTime(now.year, now.month, now.day);
   }
 
-  /// 다음 교체일까지 남은 일수. 지났으면 음수, 현재 스트링이 없으면 null
-  int? get _stringDday => _nextStringDate?.difference(_today).inDays;
+  /// 알림 날짜까지 남은 일수. 지났으면 음수, 알림이 없으면 null
+  int? get _stringDday => _stringAlarmDate?.difference(_today).inDays;
 
   /// 교체 입력을 받아 현재 스트링과 이력에 반영한다
   Future<void> _addStringChange() async {
@@ -130,35 +127,18 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     setState(() => _gripHistory.removeAt(index)); // TODO: 서버에서 삭제
   }
 
-  /// 다이얼로그로 주기(일)를 입력받는다
-  Future<void> _editStringCycle() async {
-    final controller = TextEditingController(text: '$_stringCycleDays');
-    final result = await showDialog<int>(
+  /// 바텀시트로 다음 교체 알림 날짜를 고른다
+  Future<void> _editStringAlarm() async {
+    final result = await showModalBottomSheet<DateTime>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('스트링 교체 주기'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: const InputDecoration(suffixText: '일'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(context, int.tryParse(controller.text)),
-            style: FilledButton.styleFrom(backgroundColor: _navy),
-            child: const Text('저장'),
-          ),
-        ],
+      backgroundColor: _bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (context) => _AlarmDateSheet(today: _today),
     );
-    if (result != null && result > 0) {
-      setState(() => _stringCycleDays = result); // TODO: 서버에 저장
+    if (result != null) {
+      setState(() => _stringAlarmDate = result); // TODO: 서버에 저장
     }
   }
 
@@ -170,6 +150,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     final name = widget.name;
     final currentString = _currentString;
     final currentGrip = _currentGrip;
+    final alarm = _stringAlarmDate;
     final dday = _stringDday;
     return Scaffold(
       appBar: AppBar(
@@ -282,7 +263,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                     : '${currentString.name} · ${currentString.tension}lbs',
                 sub: currentString == null
                     ? '스트링 교체를 눌러 입력하세요'
-                    : '${_formatDate(currentString.date)} 교체',
+                    : '마지막 교체 : ${_formatDate(currentString.date)}',
                 badge: dday == null
                     ? null
                     : dday >= 0
@@ -290,24 +271,30 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                         : 'D+${-dday}',
                 badgeColor: dday != null && dday <= 3 ? _red : _navy,
                 badgeBg: dday != null && dday <= 3 ? _lightRed : _lightNavy,
-                // 교체 주기 · 다음 교체일 · 변경 버튼
+                // 다음 교체 알림 날짜 · 변경 버튼
                 extra: currentString == null
                     ? null
                     : Row(
                         children: [
-                          const Icon(Icons.autorenew, size: 16, color: _gray),
+                          const Icon(
+                            Icons.notifications_none,
+                            size: 16,
+                            color: _gray,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              '교체 주기 $_stringCycleDays일 · 다음 교체 ${_formatDate(_nextStringDate!)}',
+                              alarm == null
+                                  ? '다음 교체 알림 없음'
+                                  : '다음 교체 ${_formatDate(alarm)}',
                               style: const TextStyle(fontSize: 13, color: _gray),
                             ),
                           ),
                           GestureDetector(
-                            onTap: _editStringCycle,
-                            child: const Text(
-                              '변경',
-                              style: TextStyle(
+                            onTap: _editStringAlarm,
+                            child: Text(
+                              alarm == null ? '설정' : '변경',
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: _navy,
                                 fontWeight: FontWeight.w700,
@@ -344,7 +331,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                 title: currentGrip == null ? '등록된 그립 없음' : currentGrip.detail,
                 sub: currentGrip == null
                     ? '그립 교체를 눌러 입력하세요'
-                    : '${_formatDate(currentGrip.date)} 교체 · ${_today.difference(currentGrip.date).inDays + 1}일째',
+                    : '마지막 교체 : ${_formatDate(currentGrip.date)}',
                 actionLabel: '그립 교체',
                 onAction: () {}, // TODO: 그립 교체 입력
               ),
@@ -726,6 +713,108 @@ class _StringChangeSheetState extends State<_StringChangeSheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 다음 교체 알림 날짜 선택 바텀시트 — 고르면 날짜를 돌려준다
+class _AlarmDateSheet extends StatelessWidget {
+  const _AlarmDateSheet({required this.today});
+
+  final DateTime today;
+
+  /// 달력에서 직접 고른다
+  Future<void> _pickCustom(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: today,
+      firstDate: today,
+      lastDate: DateTime(today.year + 2),
+    );
+    if (picked != null && context.mounted) Navigator.pop(context, picked);
+  }
+
+  String _formatDate(DateTime d) =>
+      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) {
+    final options = [
+      (label: '2주 후', date: today.add(const Duration(days: 14))),
+      (label: '30일 후', date: today.add(const Duration(days: 30))),
+      (label: '60일 후', date: today.add(const Duration(days: 60))),
+    ];
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '다음 교체 알림',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 16),
+            for (final option in options)
+              _AlarmOption(
+                label: option.label,
+                sub: _formatDate(option.date),
+                onTap: () => Navigator.pop(context, option.date),
+              ),
+            _AlarmOption(
+              label: '직접 선택',
+              sub: '달력에서 고르기',
+              onTap: () => _pickCustom(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 알림 날짜 선택지 한 줄
+class _AlarmOption extends StatelessWidget {
+  const _AlarmOption({
+    required this.label,
+    required this.sub,
+    required this.onTap,
+  });
+
+  final String label;
+  final String sub;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              Text(sub, style: const TextStyle(fontSize: 13, color: _gray)),
+            ],
+          ),
+        ),
       ),
     );
   }
