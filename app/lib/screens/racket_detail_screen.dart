@@ -1,8 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_text_field.dart';
+
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
 const _lightNavy = Color(0xFFE9EEF8);
+const _red = Color(0xFFD9433C);
+const _lightRed = Color(0xFFFCE8E7);
+const _bg = Color(0xFFF1F3F8);
+
+/// 스트링 교체 한 건 — 이력과 현재 스트링에 함께 쓴다
+class _StringChange {
+  const _StringChange({
+    required this.name,
+    required this.tension,
+    required this.date,
+  });
+
+  final String name;
+  final int tension;
+  final DateTime date;
+}
 
 /// 라켓 상세 화면
 class RacketDetailScreen extends StatefulWidget {
@@ -18,12 +36,47 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
   /// 스트링 교체 주기(일) — 임시값. 서버 연동 시 my_racket에서 읽어온다
   int _stringCycleDays = 30;
 
-  /// 마지막 스트링 교체일 — 임시값
-  final _strungAt = DateTime(2026, 7, 22);
+  /// 스트링 교체 이력 — 최신순. 첫 항목이 현재 스트링. 서버 연동 시 racket_string_history에서 읽어온다
+  final List<_StringChange> _stringHistory = [
+    _StringChange(name: 'BG80', tension: 26, date: DateTime(2026, 7, 22)),
+    _StringChange(name: 'BG80', tension: 26, date: DateTime(2026, 6, 30)),
+    _StringChange(name: 'BG65', tension: 25, date: DateTime(2025, 11, 2)),
+  ];
+
+  /// 현재 스트링 = 가장 최근 교체 건
+  _StringChange get _currentString => _stringHistory.first;
 
   /// 다음 교체 예정일 = 마지막 교체일 + 주기
   DateTime get _nextStringDate =>
-      _strungAt.add(Duration(days: _stringCycleDays));
+      _currentString.date.add(Duration(days: _stringCycleDays));
+
+  /// 시각을 뗀 오늘 날짜 — 날짜 차이 계산용
+  DateTime get _today {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  /// 다음 교체일까지 남은 일수. 지났으면 음수
+  int get _stringDday => _nextStringDate.difference(_today).inDays;
+
+  /// 교체 입력을 받아 현재 스트링과 이력에 반영한다
+  Future<void> _addStringChange() async {
+    final result = await showModalBottomSheet<_StringChange>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _StringChangeSheet(
+        initialName: _currentString.name,
+        initialTension: _currentString.tension,
+      ),
+    );
+    if (result != null) {
+      setState(() => _stringHistory.insert(0, result)); // TODO: 서버에 저장
+    }
+  }
 
   /// 다이얼로그로 주기(일)를 입력받는다
   Future<void> _editStringCycle() async {
@@ -169,11 +222,12 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
               const SizedBox(height: 12),
               _CurrentCard(
                 icon: Icons.linear_scale,
-                title: 'BG80 · 26lbs',
-                sub: '${_formatDate(_strungAt)} 교체 · 27일째',
-                badge: 'D-3',
-                badgeColor: const Color(0xFFD9433C),
-                badgeBg: const Color(0xFFFCE8E7),
+                title: '${_currentString.name} · ${_currentString.tension}lbs',
+                sub:
+                    '${_formatDate(_currentString.date)} 교체 · ${_today.difference(_currentString.date).inDays + 1}일째',
+                badge: _stringDday >= 0 ? 'D-$_stringDday' : 'D+${-_stringDday}',
+                badgeColor: _stringDday <= 3 ? _red : _navy,
+                badgeBg: _stringDday <= 3 ? _lightRed : _lightNavy,
                 // 교체 주기 · 다음 교체일 · 변경 버튼
                 extra: Row(
                   children: [
@@ -199,16 +253,18 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                   ],
                 ),
                 actionLabel: '스트링 교체',
-                onAction: () {}, // TODO: 스트링 교체 입력
+                onAction: _addStringChange,
               ),
               const SizedBox(height: 12),
               // 스트링 교체 이력 — 최신순
-              const _HistoryCard(
-                count: 3,
+              _HistoryCard(
+                count: _stringHistory.length,
                 rows: [
-                  _HistoryRow(date: '2026.07.22', detail: 'BG80 · 26lbs'),
-                  _HistoryRow(date: '2026.06.30', detail: 'BG80 · 26lbs'),
-                  _HistoryRow(date: '2025.11.02', detail: 'BG65 · 25lbs'),
+                  for (final change in _stringHistory)
+                    _HistoryRow(
+                      date: _formatDate(change.date),
+                      detail: '${change.name} · ${change.tension}lbs',
+                    ),
                 ],
               ),
 
@@ -465,6 +521,159 @@ class _HistoryCard extends StatelessWidget {
             rows[i],
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// 스트링 교체 입력 바텀시트 — 저장하면 _StringChange를 돌려준다
+class _StringChangeSheet extends StatefulWidget {
+  const _StringChangeSheet({
+    required this.initialName,
+    required this.initialTension,
+  });
+
+  /// 현재 스트링 이름 — 같은 스트링으로 교체하는 경우가 많아 미리 채워둔다
+  final String initialName;
+  final int initialTension;
+
+  @override
+  State<_StringChangeSheet> createState() => _StringChangeSheetState();
+}
+
+class _StringChangeSheetState extends State<_StringChangeSheet> {
+  late final _nameController = TextEditingController(text: widget.initialName);
+  late final _tensionController =
+      TextEditingController(text: '${widget.initialTension}');
+
+  /// 교체일 — 기본은 오늘
+  DateTime _date = DateTime.now();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _tensionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(now.year - 10),
+      lastDate: now,
+    );
+    if (picked != null) setState(() => _date = picked);
+  }
+
+  String _formatDate(DateTime d) =>
+      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
+
+  void _save() {
+    final name = _nameController.text.trim();
+    final tension = int.tryParse(_tensionController.text);
+    if (name.isEmpty || tension == null || tension <= 0) return;
+    Navigator.pop(
+      context,
+      _StringChange(name: name, tension: tension, date: _date),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      // 키보드가 올라오면 그만큼 시트를 밀어올린다
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '스트링 교체',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 20),
+          _SheetLabel('스트링명'),
+          AppTextField(hint: '입력', controller: _nameController),
+          const SizedBox(height: 16),
+          _SheetLabel('텐션'),
+          AppTextField(
+            hint: 'lbs',
+            controller: _tensionController,
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 16),
+          _SheetLabel('교체일'),
+          InkWell(
+            onTap: _pickDate,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              height: 58,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    _formatDate(_date),
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                  const Spacer(),
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 20,
+                    color: _gray,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 28),
+          FilledButton(
+            onPressed: _save,
+            style: FilledButton.styleFrom(
+              backgroundColor: _navy,
+              minimumSize: const Size.fromHeight(54),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Text(
+              '저장',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 바텀시트 입력칸 위의 작은 라벨
+class _SheetLabel extends StatelessWidget {
+  const _SheetLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 6),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          color: _gray,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
