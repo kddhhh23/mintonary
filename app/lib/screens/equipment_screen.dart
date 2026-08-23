@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'equipment_register_screen.dart';
 import 'racket_detail_screen.dart';
+import 'shoe_detail_screen.dart';
 
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
@@ -189,16 +190,24 @@ class _ShoeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+    // 카드를 누르면 상세 화면으로
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => ShoeDetailScreen(name: name)),
       ),
-      child: _GearHeader(
-        icon: Icons.ice_skating_outlined,
-        name: name,
-        sub: purchase,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: _GearHeader(
+          icon: Icons.ice_skating_outlined,
+          name: name,
+          sub: purchase,
+        ),
       ),
     );
   }
