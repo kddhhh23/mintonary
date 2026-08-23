@@ -60,20 +60,9 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      // 태그가 이름 줄 상단에 붙도록 위 정렬
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: _lightNavy,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            Icons.ice_skating_outlined,
-                            color: _navy,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,27 +83,8 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
                           ),
                         ),
                         // 사용 상태 태그 — 누르면 변경
-                        GestureDetector(
-                          onTap: _editStatus,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 7,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _inUse ? _lightNavy : _bg,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              _inUse ? '사용 중' : '미사용',
-                              style: TextStyle(
-                                color: _inUse ? _navy : _gray,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
+                        const SizedBox(width: 10),
+                        _StatusTag(inUse: _inUse, onTap: _editStatus),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -161,6 +131,45 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 사용 상태 태그 — 아래 화살표로 눌러서 바꿀 수 있음을 보여준다
+class _StatusTag extends StatelessWidget {
+  const _StatusTag({required this.inUse, required this.onTap});
+
+  final bool inUse;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = inUse ? _navy : _gray;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+        decoration: BoxDecoration(
+          color: inUse ? _lightNavy : _bg,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              inUse ? '사용 중' : '미사용',
+              style: TextStyle(
+                color: color,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(Icons.keyboard_arrow_down, size: 16, color: color),
+          ],
         ),
       ),
     );

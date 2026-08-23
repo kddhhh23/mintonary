@@ -274,10 +274,10 @@ class _GearHeader extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: inUse ? _lightNavy : const Color(0xFFF1F3F8),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             inUse ? '사용 중' : '미사용',
