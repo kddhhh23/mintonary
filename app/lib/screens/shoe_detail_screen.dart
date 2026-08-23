@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../models/equipment.dart';
+import '../services/equipment_api.dart';
+
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
 const _lightNavy = Color(0xFFE9EEF8);
@@ -7,36 +10,83 @@ const _bg = Color(0xFFF1F3F8);
 
 /// 신발 상세 화면
 class ShoeDetailScreen extends StatefulWidget {
-  const ShoeDetailScreen({super.key, required this.name});
+  const ShoeDetailScreen({super.key, required this.equipmentId});
 
-  final String name;
+  final int equipmentId;
 
   @override
   State<ShoeDetailScreen> createState() => _ShoeDetailScreenState();
 }
 
 class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
-  /// 사용 상태 — 임시값. 서버 연동 시 equipment.retiredAt이 null인지로 판단한다
-  bool _inUse = true;
+  EquipmentDetail? _detail;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final detail = await EquipmentApi.fetchDetail(widget.equipmentId);
+      if (!mounted) return;
+      setState(() {
+        _detail = detail;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+    }
+  }
 
   /// 바텀시트로 사용 상태를 고른다
   Future<void> _editStatus() async {
+    final detail = _detail;
+    if (detail == null) return;
     final result = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: _bg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => _StatusSheet(inUse: _inUse),
+      builder: (context) => _StatusSheet(inUse: detail.inUse),
     );
-    if (result != null) {
-      setState(() => _inUse = result); // TODO: 서버에 저장
+    if (result == null || result == detail.inUse) return;
+    try {
+      await EquipmentApi.setStatus(widget.equipmentId, result);
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
     }
+  }
+
+  String _formatDate(DateTime d) =>
+      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
+
+  /// 1234567 → 1,234,567
+  String _formatPrice(int price) => price.toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => ',',
+  );
+
+  /// 구매일부터 지금까지 몇 개월 신었는지
+  String _usageLabel(DateTime? purchaseDate) {
+    if (purchaseDate == null) return '-';
+    final now = DateTime.now();
+    var months =
+        (now.year - purchaseDate.year) * 12 + now.month - purchaseDate.month;
+    if (now.day < purchaseDate.day) months--;
+    return months < 1 ? '1개월 미만' : '$months개월';
   }
 
   @override
   Widget build(BuildContext context) {
-    final name = widget.name;
     return Scaffold(
       appBar: AppBar(
         title: const Text('신발 상세'),
@@ -48,90 +98,134 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. 기본 정보 + 스펙
-              _Card(
-                child: Column(
+      body: SafeArea(child: _buildBody()),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!, style: const TextStyle(color: _gray)),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _load,
+              child: const Text(
+                '다시 시도',
+                style: TextStyle(color: _navy, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final detail = _detail;
+    final shoe = detail?.shoe;
+    if (detail == null || shoe == null) {
+      return const Center(child: CircularProgressIndicator(color: _navy));
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. 기본 정보 + 스펙
+          _Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  // 태그가 이름 줄 상단에 붙도록 위 정렬
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      // 태그가 이름 줄 상단에 붙도록 위 정렬
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                name,
-                                style: const TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                '리닝 · 레인저',
-                                style: TextStyle(fontSize: 13, color: _gray),
-                              ),
-                            ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${shoe.brand} ${shoe.name}',
+                            style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        ),
-                        // 사용 상태 태그 — 누르면 변경
-                        const SizedBox(width: 10),
-                        _StatusTag(inUse: _inUse, onTap: _editStatus),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            shoe.brand,
+                            style: const TextStyle(fontSize: 13, color: _gray),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    // 스펙 (shoe_model)
-                    const Row(
-                      children: [
-                        Expanded(
-                          child: _Stat(label: '발볼', value: '2E'),
-                        ),
-                      ],
-                    ),
+                    // 사용 상태 태그 — 누르면 변경
+                    const SizedBox(width: 10),
+                    _StatusTag(inUse: detail.inUse, onTap: _editStatus),
                   ],
                 ),
-              ),
-              const SizedBox(height: 12),
-
-              // 2. 사용 내역
-              const _Card(
-                child: Row(
+                const SizedBox(height: 20),
+                // 스펙 (shoe_model)
+                Row(
                   children: [
                     Expanded(
-                      child: _Stat(label: '구매일', value: '2025.11.15'),
-                    ),
-                    Expanded(
-                      child: _Stat(label: '가격', value: '89,000원'),
-                    ),
-                    Expanded(
-                      child: _Stat(label: '착용', value: '8개월'),
+                      child: _Stat(label: '발볼', value: shoe.width ?? '-'),
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 28),
-
-              // 3. 메모
-              const _SectionTitle('메모'),
-              const SizedBox(height: 12),
-              const _Card(
-                child: Text(
-                  '실내 코트 전용. 쿠션 좋음.',
-                  style: TextStyle(fontSize: 14, height: 1.5),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          const SizedBox(height: 12),
+
+          // 2. 사용 내역
+          _Card(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _Stat(
+                    label: '구매일',
+                    value: detail.purchaseDate == null
+                        ? '-'
+                        : _formatDate(detail.purchaseDate!),
+                  ),
+                ),
+                Expanded(
+                  child: _Stat(
+                    label: '가격',
+                    value: detail.price == null
+                        ? '-'
+                        : '${_formatPrice(detail.price!)}원',
+                  ),
+                ),
+                Expanded(
+                  child: _Stat(
+                    label: '착용',
+                    value: _usageLabel(detail.purchaseDate),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // 3. 메모
+          const _SectionTitle('메모'),
+          const SizedBox(height: 12),
+          _Card(
+            child: Text(
+              detail.memo?.isNotEmpty == true ? detail.memo! : '메모 없음',
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: detail.memo?.isNotEmpty == true ? null : _gray,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../models/equipment.dart';
+import '../services/equipment_api.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -9,7 +11,7 @@ const _red = Color(0xFFD9433C);
 const _lightRed = Color(0xFFFCE8E7);
 const _bg = Color(0xFFF1F3F8);
 
-/// 스트링 교체 한 건 — 이력과 현재 스트링에 함께 쓴다
+/// 스트링 교체 입력 결과
 class _StringChange {
   const _StringChange({
     required this.name,
@@ -22,52 +24,46 @@ class _StringChange {
   final DateTime date;
 }
 
-/// 그립 교체 한 건 — 그립 교체 입력을 만들면 이름·종류로 구조화한다
-class _GripChange {
-  const _GripChange({required this.detail, required this.date});
-
-  final String detail;
-  final DateTime date;
-}
-
 /// 라켓 상세 화면
 class RacketDetailScreen extends StatefulWidget {
-  const RacketDetailScreen({super.key, required this.name});
+  const RacketDetailScreen({super.key, required this.equipmentId});
 
-  final String name;
+  final int equipmentId;
 
   @override
   State<RacketDetailScreen> createState() => _RacketDetailScreenState();
 }
 
 class _RacketDetailScreenState extends State<RacketDetailScreen> {
-  /// 다음 스트링 교체 알림 날짜 — 임시값. 서버 연동 시 my_racket에서 읽어온다
-  DateTime? _stringAlarmDate = DateTime(2026, 8, 21);
+  EquipmentDetail? _detail;
+  String? _error;
 
-  /// 사용 상태 — 임시값. 서버 연동 시 equipment.retiredAt이 null인지로 판단한다
-  bool _inUse = true;
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
-  /// 스트링 교체 이력 — 최신순. 첫 항목이 현재 스트링. 서버 연동 시 racket_string_history에서 읽어온다
-  final List<_StringChange> _stringHistory = [
-    _StringChange(name: 'BG80', tension: 26, date: DateTime(2026, 7, 22)),
-    _StringChange(name: 'BG80', tension: 26, date: DateTime(2026, 6, 30)),
-    _StringChange(name: 'BG65', tension: 25, date: DateTime(2025, 11, 2)),
-  ];
+  Future<void> _load() async {
+    try {
+      final detail = await EquipmentApi.fetchDetail(widget.equipmentId);
+      if (!mounted) return;
+      setState(() {
+        _detail = detail;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+    }
+  }
 
-  /// 그립 교체 이력 — 최신순. 첫 항목이 현재 그립. 서버 연동 시 racket_grip_history에서 읽어온다
-  final List<_GripChange> _gripHistory = [
-    _GripChange(detail: '슈퍼그랩 · 오버그립', date: DateTime(2026, 8, 5)),
-    _GripChange(detail: '슈퍼그랩 · 오버그립', date: DateTime(2026, 6, 1)),
-  ];
-
-  /// 현재 스트링 = 가장 최근 교체 건. 이력을 모두 지우면 null
-  _StringChange? get _currentString =>
-      _stringHistory.isEmpty ? null : _stringHistory.first;
-
-  /// 현재 그립 = 가장 최근 교체 건. 이력을 모두 지우면 null
-  _GripChange? get _currentGrip =>
-      _gripHistory.isEmpty ? null : _gripHistory.first;
-
+  /// API 호출 실패 메시지를 스낵바로 보여준다
+  void _showError(Object e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+    );
+  }
 
   /// 시각을 뗀 오늘 날짜 — 날짜 차이 계산용
   DateTime get _today {
@@ -75,11 +71,49 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     return DateTime(now.year, now.month, now.day);
   }
 
-  /// 알림 날짜까지 남은 일수. 지났으면 음수, 알림이 없으면 null
-  int? get _stringDday => _stringAlarmDate?.difference(_today).inDays;
+  /// 바텀시트로 사용 상태를 고른다
+  Future<void> _editStatus() async {
+    final detail = _detail;
+    if (detail == null) return;
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: _bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _StatusSheet(inUse: detail.inUse),
+    );
+    if (result == null || result == detail.inUse) return;
+    try {
+      await EquipmentApi.setStatus(widget.equipmentId, result);
+      await _load();
+    } catch (e) {
+      if (mounted) _showError(e);
+    }
+  }
 
-  /// 교체 입력을 받아 현재 스트링과 이력에 반영한다
+  /// 바텀시트로 다음 교체 알림 날짜를 고른다
+  Future<void> _editStringAlarm() async {
+    final result = await showModalBottomSheet<DateTime>(
+      context: context,
+      backgroundColor: _bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _AlarmDateSheet(today: _today),
+    );
+    if (result == null) return;
+    try {
+      await EquipmentApi.setStringAlarm(widget.equipmentId, result);
+      await _load();
+    } catch (e) {
+      if (mounted) _showError(e);
+    }
+  }
+
+  /// 교체 입력을 받아 서버에 기록한다
   Future<void> _addStringChange() async {
+    final current = _detail?.racket?.stringHistories.firstOrNull;
     final result = await showModalBottomSheet<_StringChange>(
       context: context,
       isScrollControlled: true,
@@ -88,12 +122,21 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) => _StringChangeSheet(
-        initialName: _currentString?.name,
-        initialTension: _currentString?.tension,
+        initialName: current?.name,
+        initialTension: current?.tension,
       ),
     );
-    if (result != null) {
-      setState(() => _stringHistory.insert(0, result)); // TODO: 서버에 저장
+    if (result == null) return;
+    try {
+      await EquipmentApi.addStringChange(
+        widget.equipmentId,
+        name: result.name,
+        tension: result.tension,
+        strungAt: result.date,
+      );
+      await _load();
+    } catch (e) {
+      if (mounted) _showError(e);
     }
   }
 
@@ -120,56 +163,51 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     return result ?? false;
   }
 
-  Future<void> _deleteStringHistory(int index) async {
+  Future<void> _deleteStringHistory(int historyId) async {
     if (!await _confirmDeleteHistory()) return;
-    setState(() => _stringHistory.removeAt(index)); // TODO: 서버에서 삭제
-  }
-
-  Future<void> _deleteGripHistory(int index) async {
-    if (!await _confirmDeleteHistory()) return;
-    setState(() => _gripHistory.removeAt(index)); // TODO: 서버에서 삭제
-  }
-
-  /// 바텀시트로 사용 상태를 고른다
-  Future<void> _editStatus() async {
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      backgroundColor: _bg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => _StatusSheet(inUse: _inUse),
-    );
-    if (result != null) {
-      setState(() => _inUse = result); // TODO: 서버에 저장
+    try {
+      await EquipmentApi.deleteStringChange(widget.equipmentId, historyId);
+      await _load();
+    } catch (e) {
+      if (mounted) _showError(e);
     }
   }
 
-  /// 바텀시트로 다음 교체 알림 날짜를 고른다
-  Future<void> _editStringAlarm() async {
-    final result = await showModalBottomSheet<DateTime>(
-      context: context,
-      backgroundColor: _bg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => _AlarmDateSheet(today: _today),
-    );
-    if (result != null) {
-      setState(() => _stringAlarmDate = result); // TODO: 서버에 저장
+  Future<void> _deleteGripHistory(int historyId) async {
+    if (!await _confirmDeleteHistory()) return;
+    try {
+      await EquipmentApi.deleteGripChange(widget.equipmentId, historyId);
+      await _load();
+    } catch (e) {
+      if (mounted) _showError(e);
     }
   }
 
   String _formatDate(DateTime d) =>
       '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
 
+  /// 1234567 → 1,234,567
+  String _formatPrice(int price) => price.toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => ',',
+  );
+
+  /// 구매일부터 지금까지 몇 개월 썼는지
+  String _usageLabel(DateTime? purchaseDate) {
+    if (purchaseDate == null) return '-';
+    final now = DateTime.now();
+    var months =
+        (now.year - purchaseDate.year) * 12 + now.month - purchaseDate.month;
+    if (now.day < purchaseDate.day) months--;
+    return months < 1 ? '1개월 미만' : '$months개월';
+  }
+
+  /// 서버 표기(U4)를 화면 표기(4U)로
+  String _weightLabel(String? weight) =>
+      weight == null ? '-' : '${weight.substring(1)}U';
+
   @override
   Widget build(BuildContext context) {
-    final name = widget.name;
-    final currentString = _currentString;
-    final currentGrip = _currentGrip;
-    final alarm = _stringAlarmDate;
-    final dday = _stringDday;
     return Scaffold(
       appBar: AppBar(
         title: const Text('라켓 상세'),
@@ -181,194 +219,240 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. 기본 정보
-              _Card(
-                child: Column(
+      body: SafeArea(child: _buildBody()),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!, style: const TextStyle(color: _gray)),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _load,
+              child: const Text(
+                '다시 시도',
+                style: TextStyle(color: _navy, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final detail = _detail;
+    final racket = detail?.racket;
+    if (detail == null || racket == null) {
+      return const Center(child: CircularProgressIndicator(color: _navy));
+    }
+
+    final currentString = racket.stringHistories.firstOrNull;
+    final currentGrip = racket.gripHistories.firstOrNull;
+    final alarm = racket.stringAlarmDate;
+    final dday = alarm?.difference(_today).inDays;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. 기본 정보 + 스펙
+          _Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  // 태그가 이름 줄 상단에 붙도록 위 정렬
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      // 태그가 이름 줄 상단에 붙도록 위 정렬
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                name,
-                                style: const TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                '요넥스 · 아스트록스',
-                                style: TextStyle(fontSize: 13, color: _gray),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // 사용 상태 태그 — 누르면 변경
-                        const SizedBox(width: 10),
-                        _StatusTag(inUse: _inUse, onTap: _editStatus),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // 스펙 (racket_model)
-                    const Row(
-                      children: [
-                        Expanded(
-                          child: _Stat(label: '무게', value: '4U'),
-                        ),
-                        Expanded(
-                          child: _Stat(label: '밸런스', value: '헤드 헤비'),
-                        ),
-                        Expanded(
-                          child: _Stat(label: '플렉스', value: '스티프'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // 2. 사용 내역
-              const _Card(
-                child: Row(
-                  children: [
                     Expanded(
-                      child: _Stat(label: '구매일', value: '2025.11.02'),
-                    ),
-                    Expanded(
-                      child: _Stat(label: '가격', value: '320,000원'),
-                    ),
-                    Expanded(
-                      child: _Stat(label: '사용', value: '9개월'),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              // 3. 현재 스트링
-              const _SectionTitle('스트링'),
-              const SizedBox(height: 12),
-              _CurrentCard(
-                icon: Icons.linear_scale,
-                title: currentString == null
-                    ? '등록된 스트링 없음'
-                    : '${currentString.name} · ${currentString.tension}lbs',
-                sub: currentString == null
-                    ? '스트링 교체를 눌러 입력하세요'
-                    : '마지막 교체 : ${_formatDate(currentString.date)}',
-                badge: dday == null
-                    ? null
-                    : dday >= 0
-                        ? 'D-$dday'
-                        : 'D+${-dday}',
-                badgeColor: dday != null && dday <= 3 ? _red : _navy,
-                badgeBg: dday != null && dday <= 3 ? _lightRed : _lightNavy,
-                // 다음 교체 알림 날짜 · 변경 버튼
-                extra: currentString == null
-                    ? null
-                    : Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.notifications_none,
-                            size: 16,
-                            color: _gray,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              alarm == null
-                                  ? '다음 교체 알림 없음'
-                                  : '다음 교체 ${_formatDate(alarm)}',
-                              style: const TextStyle(fontSize: 13, color: _gray),
+                          Text(
+                            '${racket.brand} ${racket.name}',
+                            style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: _editStringAlarm,
-                            child: Text(
-                              alarm == null ? '설정' : '변경',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: _navy,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                          const SizedBox(height: 4),
+                          Text(
+                            racket.series == null
+                                ? racket.brand
+                                : '${racket.brand} · ${racket.series}',
+                            style: const TextStyle(fontSize: 13, color: _gray),
                           ),
                         ],
                       ),
-                actionLabel: '스트링 교체',
-                onAction: _addStringChange,
-              ),
-              const SizedBox(height: 12),
-              // 스트링 교체 이력 — 최신순
-              _HistoryCard(
-                count: _stringHistory.length,
-                rows: [
-                  for (var i = 0; i < _stringHistory.length; i++)
-                    _HistoryRow(
-                      date: _formatDate(_stringHistory[i].date),
-                      detail:
-                          '${_stringHistory[i].name} · ${_stringHistory[i].tension}lbs',
-                      onDelete: () => _deleteStringHistory(i),
                     ),
-                ],
-              ),
-
-              const SizedBox(height: 28),
-
-              // 4. 현재 그립
-              const _SectionTitle('그립'),
-              const SizedBox(height: 12),
-              _CurrentCard(
-                icon: Icons.gesture,
-                title: currentGrip == null ? '등록된 그립 없음' : currentGrip.detail,
-                sub: currentGrip == null
-                    ? '그립 교체를 눌러 입력하세요'
-                    : '마지막 교체 : ${_formatDate(currentGrip.date)}',
-                actionLabel: '그립 교체',
-                onAction: () {}, // TODO: 그립 교체 입력
-              ),
-              const SizedBox(height: 12),
-              // 그립 교체 이력 — 최신순
-              _HistoryCard(
-                count: _gripHistory.length,
-                rows: [
-                  for (var i = 0; i < _gripHistory.length; i++)
-                    _HistoryRow(
-                      date: _formatDate(_gripHistory[i].date),
-                      detail: _gripHistory[i].detail,
-                      onDelete: () => _deleteGripHistory(i),
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 28),
-
-              // 5. 메모
-              const _SectionTitle('메모'),
-              const SizedBox(height: 12),
-              const _Card(
-                child: Text(
-                  '스매시용. 26lbs 넘기면 팔꿈치 아픔.',
-                  style: TextStyle(fontSize: 14, height: 1.5),
+                    // 사용 상태 태그 — 누르면 변경
+                    const SizedBox(width: 10),
+                    _StatusTag(inUse: detail.inUse, onTap: _editStatus),
+                  ],
                 ),
-              ),
+                const SizedBox(height: 20),
+                // 스펙 (racket_model)
+                Row(
+                  children: [
+                    Expanded(
+                      child: _Stat(
+                        label: '무게',
+                        value: _weightLabel(racket.weight),
+                      ),
+                    ),
+                    Expanded(
+                      child: _Stat(label: '밸런스', value: racket.balance ?? '-'),
+                    ),
+                    Expanded(
+                      child: _Stat(label: '플렉스', value: racket.flex ?? '-'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // 2. 사용 내역
+          _Card(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _Stat(
+                    label: '구매일',
+                    value: detail.purchaseDate == null
+                        ? '-'
+                        : _formatDate(detail.purchaseDate!),
+                  ),
+                ),
+                Expanded(
+                  child: _Stat(
+                    label: '가격',
+                    value: detail.price == null
+                        ? '-'
+                        : '${_formatPrice(detail.price!)}원',
+                  ),
+                ),
+                Expanded(
+                  child: _Stat(
+                    label: '사용',
+                    value: _usageLabel(detail.purchaseDate),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // 3. 현재 스트링
+          const _SectionTitle('스트링'),
+          const SizedBox(height: 12),
+          _CurrentCard(
+            icon: Icons.linear_scale,
+            title: currentString == null
+                ? '등록된 스트링 없음'
+                : '${currentString.name}${currentString.tension == null ? '' : ' · ${currentString.tension}lbs'}',
+            sub: currentString == null
+                ? '스트링 교체를 눌러 입력하세요'
+                : '마지막 교체 : ${_formatDate(currentString.strungAt)}',
+            badge: dday == null
+                ? null
+                : dday >= 0
+                ? 'D-$dday'
+                : 'D+${-dday}',
+            badgeColor: dday != null && dday <= 3 ? _red : _navy,
+            badgeBg: dday != null && dday <= 3 ? _lightRed : _lightNavy,
+            // 다음 교체 알림 날짜 · 변경 버튼
+            extra: Row(
+              children: [
+                const Icon(Icons.notifications_none, size: 16, color: _gray),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    alarm == null ? '다음 교체 알림 없음' : '다음 교체 ${_formatDate(alarm)}',
+                    style: const TextStyle(fontSize: 13, color: _gray),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _editStringAlarm,
+                  child: Text(
+                    alarm == null ? '설정' : '변경',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: _navy,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actionLabel: '스트링 교체',
+            onAction: _addStringChange,
+          ),
+          const SizedBox(height: 12),
+          // 스트링 교체 이력 — 최신순
+          _HistoryCard(
+            count: racket.stringHistories.length,
+            rows: [
+              for (final history in racket.stringHistories)
+                _HistoryRow(
+                  date: _formatDate(history.strungAt),
+                  detail:
+                      '${history.name}${history.tension == null ? '' : ' · ${history.tension}lbs'}',
+                  onDelete: () => _deleteStringHistory(history.id),
+                ),
             ],
           ),
-        ),
+
+          const SizedBox(height: 28),
+
+          // 4. 현재 그립
+          const _SectionTitle('그립'),
+          const SizedBox(height: 12),
+          _CurrentCard(
+            icon: Icons.gesture,
+            title: currentGrip == null ? '등록된 그립 없음' : currentGrip.name,
+            sub: currentGrip == null
+                ? '그립 교체를 눌러 입력하세요'
+                : '마지막 교체 : ${_formatDate(currentGrip.wrappedAt)}',
+            actionLabel: '그립 교체',
+            onAction: () {}, // TODO: 그립 교체 입력
+          ),
+          const SizedBox(height: 12),
+          // 그립 교체 이력 — 최신순
+          _HistoryCard(
+            count: racket.gripHistories.length,
+            rows: [
+              for (final history in racket.gripHistories)
+                _HistoryRow(
+                  date: _formatDate(history.wrappedAt),
+                  detail: history.name,
+                  onDelete: () => _deleteGripHistory(history.id),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 28),
+
+          // 5. 메모
+          const _SectionTitle('메모'),
+          const SizedBox(height: 12),
+          _Card(
+            child: Text(
+              detail.memo?.isNotEmpty == true ? detail.memo! : '메모 없음',
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: detail.memo?.isNotEmpty == true ? null : _gray,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -458,268 +542,6 @@ class _Stat extends StatelessWidget {
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
         ),
       ],
-    );
-  }
-}
-
-/// 현재 스트링 / 그립 카드 — 정보 + 교체 버튼
-class _CurrentCard extends StatelessWidget {
-  const _CurrentCard({
-    required this.icon,
-    required this.title,
-    required this.sub,
-    required this.actionLabel,
-    required this.onAction,
-    this.badge,
-    this.badgeColor,
-    this.badgeBg,
-    this.extra,
-  });
-
-  final IconData icon;
-  final String title;
-  final String sub;
-
-  /// 상태 배지 — 없으면 표시 안 함
-  final String? badge;
-  final Color? badgeColor;
-  final Color? badgeBg;
-  final String actionLabel;
-  final VoidCallback onAction;
-
-  /// 정보 줄과 버튼 사이에 끼울 추가 줄 (예: 교체 주기)
-  final Widget? extra;
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: _lightNavy,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: _navy, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      sub,
-                      style: const TextStyle(fontSize: 13, color: _gray),
-                    ),
-                  ],
-                ),
-              ),
-              if (badge != null)
-                _Badge(text: badge!, color: badgeColor!, bg: badgeBg!),
-            ],
-          ),
-          if (extra != null) ...[
-            const SizedBox(height: 14),
-            const Divider(height: 1),
-            const SizedBox(height: 12),
-            extra!,
-          ],
-          const SizedBox(height: 14),
-          OutlinedButton(
-            onPressed: onAction,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _navy,
-              side: const BorderSide(color: _lightNavy, width: 1.5),
-              minimumSize: const Size.fromHeight(44),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              actionLabel,
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 교체 이력 카드 — "교체 이력 N회" 제목 + 줄 목록 (줄 사이 구분선)
-class _HistoryCard extends StatelessWidget {
-  const _HistoryCard({required this.count, required this.rows});
-
-  final int count;
-  final List<_HistoryRow> rows;
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '교체 이력 $count회',
-            style: const TextStyle(
-              fontSize: 13,
-              color: _gray,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0) const Divider(height: 24), // 첫 줄 앞엔 선 없음
-            rows[i],
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// 스트링 교체 입력 바텀시트 — 저장하면 _StringChange를 돌려준다
-class _StringChangeSheet extends StatefulWidget {
-  const _StringChangeSheet({
-    required this.initialName,
-    required this.initialTension,
-  });
-
-  /// 현재 스트링 이름 — 같은 스트링으로 교체하는 경우가 많아 미리 채워둔다. 없으면 빈칸
-  final String? initialName;
-  final int? initialTension;
-
-  @override
-  State<_StringChangeSheet> createState() => _StringChangeSheetState();
-}
-
-class _StringChangeSheetState extends State<_StringChangeSheet> {
-  late final _nameController =
-      TextEditingController(text: widget.initialName ?? '');
-  late final _tensionController = TextEditingController(
-    text: widget.initialTension == null ? '' : '${widget.initialTension}',
-  );
-
-  /// 교체일 — 기본은 오늘
-  DateTime _date = DateTime.now();
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _tensionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(now.year - 10),
-      lastDate: now,
-    );
-    if (picked != null) setState(() => _date = picked);
-  }
-
-  String _formatDate(DateTime d) =>
-      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
-
-  void _save() {
-    final name = _nameController.text.trim();
-    final tension = int.tryParse(_tensionController.text);
-    if (name.isEmpty || tension == null || tension <= 0) return;
-    Navigator.pop(
-      context,
-      _StringChange(name: name, tension: tension, date: _date),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      // 키보드가 올라오면 그만큼 시트를 밀어올린다
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '스트링 교체',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 20),
-          _SheetLabel('스트링명'),
-          AppTextField(hint: '입력', controller: _nameController),
-          const SizedBox(height: 16),
-          _SheetLabel('텐션'),
-          AppTextField(
-            hint: 'lbs',
-            controller: _tensionController,
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 16),
-          _SheetLabel('교체일'),
-          InkWell(
-            onTap: _pickDate,
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              height: 58,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    _formatDate(_date),
-                    style: const TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-                  const Spacer(),
-                  const Icon(
-                    Icons.calendar_today_outlined,
-                    size: 20,
-                    color: _gray,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 28),
-          FilledButton(
-            onPressed: _save,
-            style: FilledButton.styleFrom(
-              backgroundColor: _navy,
-              minimumSize: const Size.fromHeight(54),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: const Text(
-              '저장',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -947,6 +769,236 @@ class _AlarmOption extends StatelessWidget {
   }
 }
 
+/// 현재 스트링 / 그립 카드 — 정보 + 교체 버튼
+class _CurrentCard extends StatelessWidget {
+  const _CurrentCard({
+    required this.icon,
+    required this.title,
+    required this.sub,
+    required this.actionLabel,
+    required this.onAction,
+    this.badge,
+    this.badgeColor,
+    this.badgeBg,
+    this.extra,
+  });
+
+  final IconData icon;
+  final String title;
+  final String sub;
+
+  /// 상태 배지 — 없으면 표시 안 함
+  final String? badge;
+  final Color? badgeColor;
+  final Color? badgeBg;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  /// 정보 줄과 버튼 사이에 끼울 추가 줄 (예: 알림 날짜)
+  final Widget? extra;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _lightNavy,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: _navy, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      sub,
+                      style: const TextStyle(fontSize: 13, color: _gray),
+                    ),
+                  ],
+                ),
+              ),
+              if (badge != null)
+                _Badge(text: badge!, color: badgeColor!, bg: badgeBg!),
+            ],
+          ),
+          if (extra != null) ...[
+            const SizedBox(height: 14),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            extra!,
+          ],
+          const SizedBox(height: 14),
+          OutlinedButton(
+            onPressed: onAction,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _navy,
+              side: const BorderSide(color: _lightNavy, width: 1.5),
+              minimumSize: const Size.fromHeight(44),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              actionLabel,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 스트링 교체 입력 바텀시트 — 저장하면 _StringChange를 돌려준다
+class _StringChangeSheet extends StatefulWidget {
+  const _StringChangeSheet({
+    required this.initialName,
+    required this.initialTension,
+  });
+
+  /// 현재 스트링 이름 — 같은 스트링으로 교체하는 경우가 많아 미리 채워둔다. 없으면 빈칸
+  final String? initialName;
+  final int? initialTension;
+
+  @override
+  State<_StringChangeSheet> createState() => _StringChangeSheetState();
+}
+
+class _StringChangeSheetState extends State<_StringChangeSheet> {
+  late final _nameController =
+      TextEditingController(text: widget.initialName ?? '');
+  late final _tensionController = TextEditingController(
+    text: widget.initialTension == null ? '' : '${widget.initialTension}',
+  );
+
+  /// 교체일 — 기본은 오늘
+  DateTime _date = DateTime.now();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _tensionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(now.year - 10),
+      lastDate: now,
+    );
+    if (picked != null) setState(() => _date = picked);
+  }
+
+  String _formatDate(DateTime d) =>
+      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
+
+  void _save() {
+    final name = _nameController.text.trim();
+    final tension = int.tryParse(_tensionController.text);
+    if (name.isEmpty || tension == null || tension <= 0) return;
+    Navigator.pop(
+      context,
+      _StringChange(name: name, tension: tension, date: _date),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      // 키보드가 올라오면 그만큼 시트를 밀어올린다
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '스트링 교체',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 20),
+          _SheetLabel('스트링명'),
+          AppTextField(hint: '입력', controller: _nameController),
+          const SizedBox(height: 16),
+          _SheetLabel('텐션'),
+          AppTextField(
+            hint: 'lbs',
+            controller: _tensionController,
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 16),
+          _SheetLabel('교체일'),
+          InkWell(
+            onTap: _pickDate,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              height: 58,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    _formatDate(_date),
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                  const Spacer(),
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 20,
+                    color: _gray,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 28),
+          FilledButton(
+            onPressed: _save,
+            style: FilledButton.styleFrom(
+              backgroundColor: _navy,
+              minimumSize: const Size.fromHeight(54),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Text(
+              '저장',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// 바텀시트 입력칸 위의 작은 라벨
 class _SheetLabel extends StatelessWidget {
   const _SheetLabel(this.text);
@@ -964,6 +1016,38 @@ class _SheetLabel extends StatelessWidget {
           color: _gray,
           fontWeight: FontWeight.w600,
         ),
+      ),
+    );
+  }
+}
+
+/// 교체 이력 카드 — "교체 이력 N회" 제목 + 줄 목록 (줄 사이 구분선)
+class _HistoryCard extends StatelessWidget {
+  const _HistoryCard({required this.count, required this.rows});
+
+  final int count;
+  final List<_HistoryRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '교체 이력 $count회',
+            style: const TextStyle(
+              fontSize: 13,
+              color: _gray,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) const Divider(height: 24), // 첫 줄 앞엔 선 없음
+            rows[i],
+          ],
+        ],
       ),
     );
   }

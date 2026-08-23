@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/auth_api.dart';
+import '../services/session.dart';
 import '../widgets/app_text_field.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
@@ -38,8 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
       if (!mounted) return;
-      // TODO: 토큰 저장
-      _showMessage('로그인 성공 (토큰 ${token.length}자)');
+      Session.accessToken = token; // API 호출에 쓰도록 세션에 보관
       // 홈으로 이동 — pushReplacement: 로그인 화면을 스택에서 빼서 뒤로가기로 못 돌아오게 함
       Navigator.pushReplacement(
         context,

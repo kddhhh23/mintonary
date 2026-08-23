@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../models/equipment.dart';
+import '../services/equipment_api.dart';
 import 'equipment_register_screen.dart';
 import 'racket_detail_screen.dart';
 import 'shoe_detail_screen.dart';
@@ -9,8 +11,69 @@ const _gray = Color(0xFF9AA3B2);
 const _lightNavy = Color(0xFFE9EEF8); // 아이콘 배경
 
 /// 장비 탭 — 라켓 / 신발 목록
-class EquipmentScreen extends StatelessWidget {
+class EquipmentScreen extends StatefulWidget {
   const EquipmentScreen({super.key});
+
+  @override
+  State<EquipmentScreen> createState() => _EquipmentScreenState();
+}
+
+class _EquipmentScreenState extends State<EquipmentScreen> {
+  late Future<EquipmentList> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = EquipmentApi.fetchEquipments();
+  }
+
+  void _reload() {
+    setState(() => _future = EquipmentApi.fetchEquipments());
+  }
+
+  Future<void> _openRegister() async {
+    final registered = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const EquipmentRegisterScreen()),
+    );
+    if (registered == true) _reload();
+  }
+
+  /// 상세에서 상태·이력이 바뀌었을 수 있어 돌아오면 다시 불러온다
+  Future<void> _openRacket(RacketSummary racket) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RacketDetailScreen(equipmentId: racket.id),
+      ),
+    );
+    _reload();
+  }
+
+  Future<void> _openShoe(ShoeSummary shoe) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ShoeDetailScreen(equipmentId: shoe.id)),
+    );
+    _reload();
+  }
+
+  String _formatDate(DateTime d) =>
+      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
+
+  /// 1234567 → 1,234,567
+  String _formatPrice(int price) => price.toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => ',',
+  );
+
+  String _purchaseLabel(DateTime? date, int? price) {
+    final parts = [
+      if (date != null) '구매 ${_formatDate(date)}',
+      if (price != null) '${_formatPrice(price)}원',
+    ];
+    return parts.isEmpty ? '구매 정보 없음' : parts.join(' · ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,12 +92,7 @@ class EquipmentScreen extends StatelessWidget {
                 ),
               ),
               FilledButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const EquipmentRegisterScreen(),
-                  ),
-                ),
+                onPressed: _openRegister,
                 style: FilledButton.styleFrom(
                   backgroundColor: _navy,
                   padding: const EdgeInsets.symmetric(
@@ -52,49 +110,117 @@ class EquipmentScreen extends StatelessWidget {
           ),
           const SizedBox(height: 28),
 
-          // 라켓
-          const _SectionLabel(title: '라켓', count: 3),
-          const SizedBox(height: 12),
-          const _RacketCard(
-            name: '요넥스 아스트록스 99',
-            purchase: '구매 2025.11.02 · 320,000원',
-            inUse: true,
-            string: 'BG80 · 26lbs',
-            grip: '슈퍼그랩',
-            strungAt: '2026.07.22',
-            wrappedAt: '2026.08.05',
-          ),
-          const SizedBox(height: 12),
-          const _RacketCard(
-            name: '빅터 썬더 TK-F',
-            purchase: '구매 2025.06.10 · 218,000원',
-            inUse: true,
-            string: 'VBS-66N · 27lbs',
-            grip: '카모 그립',
-            strungAt: '2026.06.14',
-            wrappedAt: '2026.07.01',
-          ),
-          const SizedBox(height: 12),
-          const _RacketCard(
-            name: '리닝 에어로너트 9000',
-            purchase: '구매 2024.09.21 · 265,000원',
-            inUse: false,
-            string: 'No.1 · 25lbs',
-            grip: '타월그립',
-            strungAt: '2026.05.30',
-            wrappedAt: '2026.06.20',
-          ),
-          const SizedBox(height: 28),
+          FutureBuilder<EquipmentList>(
+            future: _future,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return _ErrorBox(
+                  message: snapshot.error.toString().replaceFirst(
+                    'Exception: ',
+                    '',
+                  ),
+                  onRetry: _reload,
+                );
+              }
+              if (!snapshot.hasData) {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 80),
+                  child: Center(child: CircularProgressIndicator(color: _navy)),
+                );
+              }
 
-          // 신발
-          const _SectionLabel(title: '신발', count: 1),
-          const SizedBox(height: 12),
-          const _ShoeCard(
-            name: '리닝 레인저 TD',
-            purchase: '구매 2025.11.15 · 89,000원 · 착용 8개월',
-            inUse: true,
+              final list = snapshot.data!;
+              if (list.rackets.isEmpty && list.shoes.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 80),
+                  child: Center(
+                    child: Text(
+                      '등록된 장비가 없어요\n오른쪽 위 버튼으로 장비를 등록해 보세요',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: _gray, height: 1.6),
+                    ),
+                  ),
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (list.rackets.isNotEmpty) ...[
+                    _SectionLabel(title: '라켓', count: list.rackets.length),
+                    const SizedBox(height: 12),
+                    for (final racket in list.rackets) ...[
+                      _RacketCard(
+                        name: '${racket.brand} ${racket.name}',
+                        purchase: _purchaseLabel(
+                          racket.purchaseDate,
+                          racket.price,
+                        ),
+                        inUse: racket.inUse,
+                        string: racket.stringName == null
+                            ? '기록 없음'
+                            : '${racket.stringName}${racket.tension == null ? '' : ' · ${racket.tension}lbs'}',
+                        stringDate: racket.strungAt == null
+                            ? ''
+                            : '${_formatDate(racket.strungAt!)} 교체',
+                        grip: racket.gripName ?? '기록 없음',
+                        gripDate: racket.wrappedAt == null
+                            ? ''
+                            : '${_formatDate(racket.wrappedAt!)} 교체',
+                        onTap: () => _openRacket(racket),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    const SizedBox(height: 16),
+                  ],
+                  if (list.shoes.isNotEmpty) ...[
+                    _SectionLabel(title: '신발', count: list.shoes.length),
+                    const SizedBox(height: 12),
+                    for (final shoe in list.shoes) ...[
+                      _ShoeCard(
+                        name: '${shoe.brand} ${shoe.name}',
+                        purchase: _purchaseLabel(shoe.purchaseDate, shoe.price),
+                        inUse: shoe.inUse,
+                        onTap: () => _openShoe(shoe),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ],
+                ],
+              );
+            },
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 목록을 못 불러왔을 때 — 메시지 + 다시 시도
+class _ErrorBox extends StatelessWidget {
+  const _ErrorBox({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 80),
+      child: Center(
+        child: Column(
+          children: [
+            Text(message, style: const TextStyle(color: _gray)),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: onRetry,
+              child: const Text(
+                '다시 시도',
+                style: TextStyle(color: _navy, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -124,34 +250,32 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-/// 라켓 카드 — 기본 정보 + 스트링/그립/교체 이력
+/// 라켓 카드 — 기본 정보 + 현재 스트링/그립
 class _RacketCard extends StatelessWidget {
   const _RacketCard({
     required this.name,
     required this.purchase,
     required this.inUse,
     required this.string,
+    required this.stringDate,
     required this.grip,
-    required this.strungAt,
-    required this.wrappedAt,
+    required this.gripDate,
+    required this.onTap,
   });
 
   final String name;
   final String purchase;
   final bool inUse;
   final String string;
+  final String stringDate;
   final String grip;
-  final String strungAt; // 마지막 스트링 교체일
-  final String wrappedAt; // 마지막 그립 교체일
+  final String gripDate;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    // 카드를 누르면 상세 화면으로
     return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => RacketDetailScreen(name: name)),
-      ),
+      onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.all(18),
@@ -173,11 +297,11 @@ class _RacketCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _Stat(label: '스트링', value: string, date: strungAt),
+                  child: _Stat(label: '스트링', value: string, date: stringDate),
                 ),
                 const SizedBox(width: 20), // 두 열 사이 간격 — 선이 끊긴다
                 Expanded(
-                  child: _Stat(label: '그립', value: grip, date: wrappedAt),
+                  child: _Stat(label: '그립', value: grip, date: gripDate),
                 ),
               ],
             ),
@@ -194,20 +318,18 @@ class _ShoeCard extends StatelessWidget {
     required this.name,
     required this.purchase,
     required this.inUse,
+    required this.onTap,
   });
 
   final String name;
   final String purchase;
   final bool inUse;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    // 카드를 누르면 상세 화면으로
     return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ShoeDetailScreen(name: name)),
-      ),
+      onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.all(18),
@@ -299,6 +421,8 @@ class _Stat extends StatelessWidget {
 
   final String label;
   final String value;
+
+  /// 이미 만들어진 문구 (예: "2026.07.22 교체"). 비어 있으면 표시하지 않는다
   final String date;
 
   @override
@@ -320,8 +444,10 @@ class _Stat extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 4),
-        Text('$date 교체', style: const TextStyle(fontSize: 13, color: _gray)),
+        if (date.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(date, style: const TextStyle(fontSize: 13, color: _gray)),
+        ],
       ],
     );
   }
