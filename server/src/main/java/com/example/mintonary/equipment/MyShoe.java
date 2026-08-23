@@ -30,4 +30,11 @@ public class MyShoe {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shoe_model_id", nullable = false)
     private ShoeModel shoeModel;
+
+    public static MyShoe create(Equipment equipment, ShoeModel shoeModel) {
+        MyShoe myShoe = new MyShoe();
+        myShoe.equipment = equipment;
+        myShoe.shoeModel = shoeModel;
+        return myShoe;
+    }
 }

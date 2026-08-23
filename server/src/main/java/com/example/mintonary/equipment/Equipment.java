@@ -44,4 +44,34 @@ public class Equipment extends BaseEntity {
 
     /** 방출일, null이면 사용 중 */
     private LocalDate retiredAt;
+
+    public static Equipment create(
+            Member member,
+            EquipmentType type,
+            LocalDate purchaseDate,
+            Integer price,
+            String memo
+    ) {
+        Equipment equipment = new Equipment();
+        equipment.member = member;
+        equipment.type = type;
+        equipment.purchaseDate = purchaseDate;
+        equipment.price = price;
+        equipment.memo = memo;
+        return equipment;
+    }
+
+    public boolean isInUse() {
+        return retiredAt == null;
+    }
+
+    /** 미사용 처리 — 방출일을 오늘로 기록한다 */
+    public void retire() {
+        this.retiredAt = LocalDate.now();
+    }
+
+    /** 다시 사용 중으로 되돌린다 */
+    public void restore() {
+        this.retiredAt = null;
+    }
 }

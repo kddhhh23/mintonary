@@ -30,4 +30,11 @@ public class GripModel {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private GripType type;
+
+    public static GripModel create(String name, GripType type) {
+        GripModel model = new GripModel();
+        model.name = name;
+        model.type = type;
+        return model;
+    }
 }

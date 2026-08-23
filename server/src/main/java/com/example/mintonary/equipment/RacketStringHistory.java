@@ -49,4 +49,20 @@ public class RacketStringHistory {
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public static RacketStringHistory create(
+            MyRacket myRacket,
+            StringModel stringModel,
+            Integer tension,
+            LocalDate strungAt,
+            String memo
+    ) {
+        RacketStringHistory history = new RacketStringHistory();
+        history.myRacket = myRacket;
+        history.stringModel = stringModel;
+        history.tension = tension;
+        history.strungAt = strungAt;
+        history.memo = memo;
+        return history;
+    }
 }

@@ -24,4 +24,10 @@ public class StringModel {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    public static StringModel create(String name) {
+        StringModel model = new StringModel();
+        model.name = name;
+        return model;
+    }
 }

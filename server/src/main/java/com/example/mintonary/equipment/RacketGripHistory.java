@@ -46,4 +46,18 @@ public class RacketGripHistory {
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public static RacketGripHistory create(
+            MyRacket myRacket,
+            GripModel gripModel,
+            LocalDate wrappedAt,
+            String memo
+    ) {
+        RacketGripHistory history = new RacketGripHistory();
+        history.myRacket = myRacket;
+        history.gripModel = gripModel;
+        history.wrappedAt = wrappedAt;
+        history.memo = memo;
+        return history;
+    }
 }

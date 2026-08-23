@@ -82,9 +82,10 @@ CREATE TABLE equipment (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE my_racket (
-    id              BIGINT NOT NULL AUTO_INCREMENT,
-    equipment_id    BIGINT NOT NULL,
-    racket_model_id BIGINT NOT NULL,
+    id                BIGINT NOT NULL AUTO_INCREMENT,
+    equipment_id      BIGINT NOT NULL,
+    racket_model_id   BIGINT NOT NULL,
+    string_alarm_date DATE   NULL COMMENT '다음 스트링 교체 알림 날짜',
     PRIMARY KEY (id),
     UNIQUE KEY uk_my_racket_equipment (equipment_id),
     CONSTRAINT fk_my_racket_equipment FOREIGN KEY (equipment_id) REFERENCES equipment (id),
