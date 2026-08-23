@@ -62,7 +62,8 @@ class EquipmentScreen extends StatelessWidget {
             badgeBg: Color(0xFFFCE8E7),
             string: 'BG80 · 26lbs',
             grip: '슈퍼그랩',
-            history: '5회',
+            strungAt: '2026.07.22',
+            wrappedAt: '2026.08.05',
           ),
           const SizedBox(height: 12),
           const _RacketCard(
@@ -73,7 +74,8 @@ class EquipmentScreen extends StatelessWidget {
             badgeBg: _lightNavy,
             string: 'VBS-66N · 27lbs',
             grip: '카모 그립',
-            history: '3회',
+            strungAt: '2026.06.14',
+            wrappedAt: '2026.07.01',
           ),
           const SizedBox(height: 12),
           const _RacketCard(
@@ -84,7 +86,8 @@ class EquipmentScreen extends StatelessWidget {
             badgeBg: Color(0xFFFBF1DA),
             string: 'No.1 · 25lbs',
             grip: '타월그립',
-            history: '7회',
+            strungAt: '2026.05.30',
+            wrappedAt: '2026.06.20',
           ),
           const SizedBox(height: 28),
 
@@ -138,7 +141,8 @@ class _RacketCard extends StatelessWidget {
     required this.badgeBg,
     required this.string,
     required this.grip,
-    required this.history,
+    required this.strungAt,
+    required this.wrappedAt,
   });
 
   final String name;
@@ -148,7 +152,8 @@ class _RacketCard extends StatelessWidget {
   final Color badgeBg;
   final String string;
   final String grip;
-  final String history;
+  final String strungAt; // 마지막 스트링 교체일
+  final String wrappedAt; // 마지막 그립 교체일
 
   @override
   Widget build(BuildContext context) {
@@ -177,17 +182,15 @@ class _RacketCard extends StatelessWidget {
               badgeBg: badgeBg,
             ),
             const SizedBox(height: 22),
-            // 스트링 / 그립 / 교체 이력 — 3열
+            // 스트링 / 그립 — 2열, 각각 아래에 교체일
             Row(
               children: [
                 Expanded(
-                  child: _Stat(label: '스트링', value: string),
+                  child: _Stat(label: '스트링', value: string, date: strungAt),
                 ),
+                const SizedBox(width: 20), // 두 열 사이 간격 — 선이 끊긴다
                 Expanded(
-                  child: _Stat(label: '그립', value: grip),
-                ),
-                Expanded(
-                  child: _Stat(label: '교체 이력', value: history),
+                  child: _Stat(label: '그립', value: grip, date: wrappedAt),
                 ),
               ],
             ),
@@ -305,26 +308,35 @@ class _GearHeader extends StatelessWidget {
   }
 }
 
-/// 라벨(회색) 위, 값(굵게) 아래
+/// 라벨(회색) 위, 값(굵게), 그 아래 교체일(작은 회색)
 class _Stat extends StatelessWidget {
-  const _Stat({required this.label, required this.value});
+  const _Stat({required this.label, required this.value, required this.date});
 
   final String label;
   final String value;
+  final String date;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: _gray)),
-        const SizedBox(height: 6),
+        // 소제목처럼 — 진하게 + 아래 얇은 선
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 8),
+        const Divider(height: 1),
+        const SizedBox(height: 10),
         Text(
           value,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
+        const SizedBox(height: 4),
+        Text('$date 교체', style: const TextStyle(fontSize: 13, color: _gray)),
       ],
     );
   }
