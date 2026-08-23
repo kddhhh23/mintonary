@@ -3,15 +3,40 @@ import 'package:flutter/material.dart';
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
 const _lightNavy = Color(0xFFE9EEF8);
+const _bg = Color(0xFFF1F3F8);
 
 /// 신발 상세 화면
-class ShoeDetailScreen extends StatelessWidget {
+class ShoeDetailScreen extends StatefulWidget {
   const ShoeDetailScreen({super.key, required this.name});
 
   final String name;
 
   @override
+  State<ShoeDetailScreen> createState() => _ShoeDetailScreenState();
+}
+
+class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
+  /// 사용 상태 — 임시값. 서버 연동 시 equipment.retiredAt이 null인지로 판단한다
+  bool _inUse = true;
+
+  /// 바텀시트로 사용 상태를 고른다
+  Future<void> _editStatus() async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: _bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _StatusSheet(inUse: _inUse),
+    );
+    if (result != null) {
+      setState(() => _inUse = result); // TODO: 서버에 저장
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final name = widget.name;
     return Scaffold(
       appBar: AppBar(
         title: const Text('신발 상세'),
@@ -68,6 +93,28 @@ class ShoeDetailScreen extends StatelessWidget {
                             ],
                           ),
                         ),
+                        // 사용 상태 태그 — 누르면 변경
+                        GestureDetector(
+                          onTap: _editStatus,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _inUse ? _lightNavy : _bg,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _inUse ? '사용 중' : '미사용',
+                              style: TextStyle(
+                                color: _inUse ? _navy : _gray,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -112,6 +159,88 @@ class ShoeDetailScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 14, height: 1.5),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 사용 상태 선택 바텀시트 — 고르면 사용 중 여부(bool)를 돌려준다
+class _StatusSheet extends StatelessWidget {
+  const _StatusSheet({required this.inUse});
+
+  final bool inUse;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '사용 상태',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 16),
+            _StatusOption(
+              label: '사용 중',
+              selected: inUse,
+              onTap: () => Navigator.pop(context, true),
+            ),
+            _StatusOption(
+              label: '미사용',
+              selected: !inUse,
+              onTap: () => Navigator.pop(context, false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 사용 상태 선택지 한 줄 — 현재 상태에 체크 표시
+class _StatusOption extends StatelessWidget {
+  const _StatusOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              if (selected) const Icon(Icons.check, size: 20, color: _navy),
             ],
           ),
         ),

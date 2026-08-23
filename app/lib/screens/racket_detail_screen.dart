@@ -44,6 +44,9 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
   /// 다음 스트링 교체 알림 날짜 — 임시값. 서버 연동 시 my_racket에서 읽어온다
   DateTime? _stringAlarmDate = DateTime(2026, 8, 21);
 
+  /// 사용 상태 — 임시값. 서버 연동 시 equipment.retiredAt이 null인지로 판단한다
+  bool _inUse = true;
+
   /// 스트링 교체 이력 — 최신순. 첫 항목이 현재 스트링. 서버 연동 시 racket_string_history에서 읽어온다
   final List<_StringChange> _stringHistory = [
     _StringChange(name: 'BG80', tension: 26, date: DateTime(2026, 7, 22)),
@@ -127,6 +130,21 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     setState(() => _gripHistory.removeAt(index)); // TODO: 서버에서 삭제
   }
 
+  /// 바텀시트로 사용 상태를 고른다
+  Future<void> _editStatus() async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: _bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _StatusSheet(inUse: _inUse),
+    );
+    if (result != null) {
+      setState(() => _inUse = result); // TODO: 서버에 저장
+    }
+  }
+
   /// 바텀시트로 다음 교체 알림 날짜를 고른다
   Future<void> _editStringAlarm() async {
     final result = await showModalBottomSheet<DateTime>(
@@ -206,6 +224,15 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                                 style: TextStyle(fontSize: 13, color: _gray),
                               ),
                             ],
+                          ),
+                        ),
+                        // 사용 상태 태그 — 누르면 변경
+                        GestureDetector(
+                          onTap: _editStatus,
+                          child: _Badge(
+                            text: _inUse ? '사용 중' : '미사용',
+                            color: _inUse ? _navy : _gray,
+                            bg: _inUse ? _lightNavy : _bg,
                           ),
                         ),
                       ],
@@ -709,6 +736,88 @@ class _StringChangeSheetState extends State<_StringChangeSheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 사용 상태 선택 바텀시트 — 고르면 사용 중 여부(bool)를 돌려준다
+class _StatusSheet extends StatelessWidget {
+  const _StatusSheet({required this.inUse});
+
+  final bool inUse;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '사용 상태',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 16),
+            _StatusOption(
+              label: '사용 중',
+              selected: inUse,
+              onTap: () => Navigator.pop(context, true),
+            ),
+            _StatusOption(
+              label: '미사용',
+              selected: !inUse,
+              onTap: () => Navigator.pop(context, false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 사용 상태 선택지 한 줄 — 현재 상태에 체크 표시
+class _StatusOption extends StatelessWidget {
+  const _StatusOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              if (selected) const Icon(Icons.check, size: 20, color: _navy),
+            ],
+          ),
+        ),
       ),
     );
   }
