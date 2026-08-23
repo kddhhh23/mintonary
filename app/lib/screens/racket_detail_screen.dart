@@ -11,6 +11,9 @@ const _red = Color(0xFFD9433C);
 const _lightRed = Color(0xFFFCE8E7);
 const _bg = Color(0xFFF1F3F8);
 
+/// 그립 종류 — 서버 GripType과 같은 값
+const _gripTypes = {'OVER': '오버그립', 'TOWEL': '타월그립', 'CUSHION': '쿠션그립'};
+
 /// 스트링 교체 입력 결과
 class _StringChange {
   const _StringChange({
@@ -21,6 +24,21 @@ class _StringChange {
 
   final String name;
   final int tension;
+  final DateTime date;
+}
+
+/// 그립 교체 입력 결과
+class _GripChange {
+  const _GripChange({
+    required this.name,
+    required this.type,
+    required this.date,
+  });
+
+  final String name;
+
+  /// OVER, TOWEL, CUSHION
+  final String type;
   final DateTime date;
 }
 
@@ -133,6 +151,35 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
         name: result.name,
         tension: result.tension,
         strungAt: result.date,
+      );
+      await _load();
+    } catch (e) {
+      if (mounted) _showError(e);
+    }
+  }
+
+  /// 그립 교체 입력을 받아 서버에 기록한다
+  Future<void> _addGripChange() async {
+    final current = _detail?.racket?.gripHistories.firstOrNull;
+    final result = await showModalBottomSheet<_GripChange>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _GripChangeSheet(
+        initialName: current?.name,
+        initialType: current?.type,
+      ),
+    );
+    if (result == null) return;
+    try {
+      await EquipmentApi.addGripChange(
+        widget.equipmentId,
+        name: result.name,
+        type: result.type,
+        wrappedAt: result.date,
       );
       await _load();
     } catch (e) {
@@ -416,12 +463,14 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
           const SizedBox(height: 12),
           _CurrentCard(
             icon: Icons.gesture,
-            title: currentGrip == null ? '등록된 그립 없음' : currentGrip.name,
+            title: currentGrip == null
+                ? '등록된 그립 없음'
+                : '${currentGrip.name}${_gripTypes[currentGrip.type] == null ? '' : ' · ${_gripTypes[currentGrip.type]}'}',
             sub: currentGrip == null
                 ? '그립 교체를 눌러 입력하세요'
                 : '마지막 교체 : ${_formatDate(currentGrip.wrappedAt)}',
             actionLabel: '그립 교체',
-            onAction: () {}, // TODO: 그립 교체 입력
+            onAction: _addGripChange,
           ),
           const SizedBox(height: 12),
           // 그립 교체 이력 — 최신순
@@ -431,7 +480,8 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
               for (final history in racket.gripHistories)
                 _HistoryRow(
                   date: _formatDate(history.wrappedAt),
-                  detail: history.name,
+                  detail:
+                      '${history.name}${_gripTypes[history.type] == null ? '' : ' · ${_gripTypes[history.type]}'}',
                   onDelete: () => _deleteGripHistory(history.id),
                 ),
             ],
@@ -949,6 +999,155 @@ class _StringChangeSheetState extends State<_StringChangeSheet> {
             hint: 'lbs',
             controller: _tensionController,
             keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 16),
+          _SheetLabel('교체일'),
+          InkWell(
+            onTap: _pickDate,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              height: 58,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    _formatDate(_date),
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                  const Spacer(),
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 20,
+                    color: _gray,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 28),
+          FilledButton(
+            onPressed: _save,
+            style: FilledButton.styleFrom(
+              backgroundColor: _navy,
+              minimumSize: const Size.fromHeight(54),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Text(
+              '저장',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 그립 교체 입력 바텀시트 — 저장하면 _GripChange를 돌려준다
+class _GripChangeSheet extends StatefulWidget {
+  const _GripChangeSheet({
+    required this.initialName,
+    required this.initialType,
+  });
+
+  /// 현재 그립 — 같은 그립으로 교체하는 경우가 많아 미리 채워둔다. 없으면 빈칸
+  final String? initialName;
+  final String? initialType;
+
+  @override
+  State<_GripChangeSheet> createState() => _GripChangeSheetState();
+}
+
+class _GripChangeSheetState extends State<_GripChangeSheet> {
+  late final _nameController =
+      TextEditingController(text: widget.initialName ?? '');
+  late String? _type = widget.initialType;
+
+  /// 교체일 — 기본은 오늘
+  DateTime _date = DateTime.now();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(now.year - 10),
+      lastDate: now,
+    );
+    if (picked != null) setState(() => _date = picked);
+  }
+
+  String _formatDate(DateTime d) =>
+      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
+
+  void _save() {
+    final name = _nameController.text.trim();
+    final type = _type;
+    if (name.isEmpty || type == null) return;
+    Navigator.pop(
+      context,
+      _GripChange(name: name, type: type, date: _date),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      // 키보드가 올라오면 그만큼 시트를 밀어올린다
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '그립 교체',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 20),
+          _SheetLabel('그립명'),
+          AppTextField(hint: '입력', controller: _nameController),
+          const SizedBox(height: 16),
+          _SheetLabel('그립 종류'),
+          DropdownButtonFormField<String>(
+            // key를 value로 두면 값이 바뀔 때 위젯을 새로 만들어 초기값이 반영된다
+            key: ValueKey(_type),
+            initialValue: _type,
+            isExpanded: true,
+            hint: const Text('선택', style: TextStyle(color: _gray)),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 18,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            items: [
+              for (final entry in _gripTypes.entries)
+                DropdownMenuItem(value: entry.key, child: Text(entry.value)),
+            ],
+            onChanged: (value) => setState(() => _type = value),
           ),
           const SizedBox(height: 16),
           _SheetLabel('교체일'),
