@@ -208,11 +208,6 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                             ],
                           ),
                         ),
-                        const _Badge(
-                          text: '사용 중',
-                          color: _navy,
-                          bg: _lightNavy,
-                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
