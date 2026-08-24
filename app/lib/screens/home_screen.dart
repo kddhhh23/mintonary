@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'equipment_screen.dart';
+import 'record_screen.dart';
 
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
@@ -30,8 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: switch (_tab) {
           0 => _HomeBody(onGoTab: _goTab),
+          1 => const RecordScreen(),
           2 => const EquipmentScreen(),
-          // TODO: 기록 / 지출 화면 만들면 교체
+          // TODO: 지출 화면 만들면 교체
           _ => Center(
             child: Text(
               '${_tabNames[_tab]} 화면 준비 중',

@@ -130,3 +130,23 @@ CREATE TABLE racket_grip_history (
     CONSTRAINT fk_grip_history_racket FOREIGN KEY (my_racket_id) REFERENCES my_racket (id),
     CONSTRAINT fk_grip_history_model FOREIGN KEY (grip_model_id) REFERENCES grip_model (id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- =========================
+-- 운동 기록
+-- =========================
+
+CREATE TABLE workout_record (
+    id          BIGINT       NOT NULL AUTO_INCREMENT,
+    member_id   BIGINT       NOT NULL,
+    record_date DATE         NOT NULL,
+    type        VARCHAR(20)  NOT NULL COMMENT 'GENERAL, LESSON, TOURNAMENT',
+    title       VARCHAR(100) NOT NULL,
+    place       VARCHAR(100) NULL,
+    coach       VARCHAR(50)  NULL,
+    result      VARCHAR(100) NULL COMMENT '대회 결과 (예: 준우승, 조별 예선 탈락)',
+    memo        VARCHAR(500) NULL,
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_workout_record_member FOREIGN KEY (member_id) REFERENCES member (id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

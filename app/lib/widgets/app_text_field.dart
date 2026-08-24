@@ -8,6 +8,7 @@ class AppTextField extends StatelessWidget {
     required this.controller,
     this.obscure = false,
     this.keyboardType,
+    this.maxLength,
   });
 
   /// 입력 전에 보여줄 안내 문구
@@ -22,17 +23,22 @@ class AppTextField extends StatelessWidget {
   /// 이메일처럼 전용 키보드가 필요할 때 지정
   final TextInputType? keyboardType;
 
+  /// 최대 글자 수 — DB 컬럼 제한에 맞출 때 지정 (카운터는 숨긴다)
+  final int? maxLength;
+
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
       obscureText: obscure,
       keyboardType: keyboardType,
+      maxLength: maxLength,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Color(0xFFA8B0BF)),
         filled: true, // 배경색 채우기 활성화
         fillColor: Colors.white,
+        counterText: '', // maxLength 지정 시 생기는 "0/100" 카운터 숨김
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
