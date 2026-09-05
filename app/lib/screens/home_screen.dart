@@ -30,25 +30,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   /// 현재 탭 — 0 홈, 1 기록, 2 장비, 3 지출
   int _tab = 0;
-  int _expenseScreenVersion = 0;
 
   void _goTab(int index) => setState(() => _tab = index);
-
-  Future<void> _add() async {
-    if (_tab != 3) {
-      _goTab(1);
-      return;
-    }
-    final saved = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ExpenseFormScreen(initialDate: DateTime.now()),
-      ),
-    );
-    if (saved == true && mounted) {
-      setState(() => _expenseScreenVersion++);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,14 +41,10 @@ class _HomeScreenState extends State<HomeScreen> {
           0 => _HomeBody(onGoTab: _goTab),
           1 => const RecordScreen(),
           2 => const EquipmentScreen(),
-          _ => ExpenseScreen(key: ValueKey(_expenseScreenVersion)),
+          _ => const ExpenseScreen(),
         },
       ),
-      bottomNavigationBar: _BottomBar(
-        current: _tab,
-        onTap: _goTab,
-        onAdd: _add,
-      ),
+      bottomNavigationBar: _BottomBar(current: _tab, onTap: _goTab),
     );
   }
 }
@@ -727,17 +706,12 @@ class _HomeError extends StatelessWidget {
   }
 }
 
-/// 하단 탭바 (가운데 + 버튼)
+/// 하단 탭바
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({
-    required this.current,
-    required this.onTap,
-    required this.onAdd,
-  });
+  const _BottomBar({required this.current, required this.onTap});
 
   final int current; // 현재 선택된 탭 번호
   final ValueChanged<int> onTap;
-  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -756,41 +730,9 @@ class _BottomBar extends StatelessWidget {
         children: [
           item(0, Icons.home_rounded, '홈'),
           item(1, Icons.calendar_today_outlined, '기록'),
-          _AddButton(onPressed: onAdd),
           item(2, Icons.sports_tennis_outlined, '장비'),
           item(3, Icons.account_balance_wallet_outlined, '지출'),
         ],
-      ),
-    );
-  }
-}
-
-/// 가운데 + 버튼 — 바 안에 두고 살짝만 위로 올린다
-class _AddButton extends StatelessWidget {
-  const _AddButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: Transform.translate(
-          offset: const Offset(0, -12), // 위로 12만큼 (레이아웃엔 영향 없음)
-          child: SizedBox(
-            width: 60,
-            height: 60,
-            child: FilledButton(
-              onPressed: onPressed,
-              style: FilledButton.styleFrom(
-                backgroundColor: _navy,
-                shape: const CircleBorder(),
-                padding: EdgeInsets.zero,
-              ),
-              child: const Icon(Icons.add, color: Colors.white, size: 30),
-            ),
-          ),
-        ),
       ),
     );
   }
