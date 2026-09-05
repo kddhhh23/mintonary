@@ -180,6 +180,39 @@ class LocalDatabase
   }
 
   @override
+  Future<void> updateRecord(
+    int id, {
+    required DateTime date,
+    required String type,
+    required String title,
+    String? place,
+    String? coach,
+    String? result,
+    String? memo,
+  }) async {
+    String? optional(String? value) {
+      final trimmed = value?.trim();
+      return trimmed == null || trimmed.isEmpty ? null : trimmed;
+    }
+
+    final updated = await _db.update(
+      'workout_record',
+      {
+        'record_date': _iso(date),
+        'type': type,
+        'title': title.trim(),
+        'place': optional(place),
+        'coach': optional(coach),
+        'result': optional(result),
+        'memo': optional(memo),
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (updated == 0) throw Exception('운동 기록을 찾을 수 없습니다.');
+  }
+
+  @override
   Future<void> deleteRecord(int id) async =>
       _db.delete('workout_record', where: 'id = ?', whereArgs: [id]);
 

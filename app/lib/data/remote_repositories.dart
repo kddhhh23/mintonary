@@ -29,6 +29,17 @@ class RemoteRecordRepository implements RecordRepository {
     memo: memo,
   );
   @override
+  Future<void> updateRecord(
+    int id, {
+    required DateTime date,
+    required String type,
+    required String title,
+    String? place,
+    String? coach,
+    String? result,
+    String? memo,
+  }) => throw UnsupportedError('서버 모드에서는 운동 기록 수정을 지원하지 않습니다.');
+  @override
   Future<void> deleteRecord(int id) => RecordApi.delete(id);
 }
 

@@ -40,6 +40,16 @@ abstract interface class RecordRepository {
     String? result,
     String? memo,
   });
+  Future<void> updateRecord(
+    int id, {
+    required DateTime date,
+    required String type,
+    required String title,
+    String? place,
+    String? coach,
+    String? result,
+    String? memo,
+  });
   Future<void> deleteRecord(int id);
 }
 
