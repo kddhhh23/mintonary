@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../models/equipment.dart';
+import '../models/workout_record.dart';
+import '../services/equipment_api.dart';
+import '../services/record_api.dart';
+import '../services/session.dart';
 import 'equipment_screen.dart';
+import 'racket_detail_screen.dart';
 import 'record_screen.dart';
+import 'shoe_detail_screen.dart';
 
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
@@ -47,12 +54,39 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// 홈 탭 내용
-class _HomeBody extends StatelessWidget {
+/// 홈 탭 내용 — 운동 기록과 장비를 서버에서 함께 불러온다
+class _HomeBody extends StatefulWidget {
   const _HomeBody({required this.onGoTab});
 
   /// "전체보기" 눌렀을 때 탭을 바꾸기 위한 콜백
   final ValueChanged<int> onGoTab;
+
+  @override
+  State<_HomeBody> createState() => _HomeBodyState();
+}
+
+class _HomeBodyState extends State<_HomeBody> {
+  late Future<_HomeData> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<_HomeData> _load() async {
+    final now = DateTime.now();
+    final results = await Future.wait<Object>([
+      RecordApi.fetchMonth(now.year, now.month),
+      EquipmentApi.fetchEquipments(),
+    ]);
+    return _HomeData(
+      records: results[0] as List<WorkoutRecord>,
+      equipments: results[1] as EquipmentList,
+    );
+  }
+
+  void _reload() => setState(() => _future = _load());
 
   @override
   Widget build(BuildContext context) {
@@ -61,70 +95,32 @@ class _HomeBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _Header(),
+          _Header(nickname: Session.nickname ?? '회원'),
           const SizedBox(height: 24),
-          const _MonthlyCard(),
-          const SizedBox(height: 32),
-
-          // 내 장비
-          _SectionTitle(
-            title: '내 장비',
-            action: '전체보기',
-            onAction: () => onGoTab(2),
-          ),
-          const SizedBox(height: 12),
-          // 라켓 목록 — 가로 스크롤
-          SizedBox(
-            height: 92,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              children: const [
-                _GearCard(
-                  icon: Icons.sports_tennis_outlined,
-                  name: '요넥스 아스트록스 99',
-                  sub: '스트링 BG80 · 27일째',
-                  badge: '스트링 D-3',
-                  badgeColor: Color(0xFFD9433C),
-                  badgeBg: Color(0xFFFCE8E7),
-                  width: 340,
-                ),
-                SizedBox(width: 12),
-                _GearCard(
-                  icon: Icons.sports_tennis_outlined,
-                  name: '빅터 스러스터 K',
-                  sub: '스트링 BG65 · 12일째',
-                  badge: '양호',
-                  badgeColor: _navy,
-                  badgeBg: _lightNavy,
-                  width: 340,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          const _GearCard(
-            icon: Icons.ice_skating_outlined,
-            name: '리닝 레인저 TD',
-            sub: '착용 8개월 · 주 3회 사용',
-            badge: '양호',
-            badgeColor: _navy,
-            badgeBg: _lightNavy,
-          ),
-
-          const SizedBox(height: 28),
-
-          // 지출
-          _SectionTitle(
-            title: '이번 달 지출',
-            action: '전체보기',
-            onAction: () => onGoTab(3),
-          ),
-          const SizedBox(height: 12),
-          const _ExpenseCard(
-            total: '128,000원',
-            recent: '어제 · 셔틀콕 1통',
-            recentAmount: '18,000원',
+          FutureBuilder<_HomeData>(
+            future: _future,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return _HomeError(
+                  message: snapshot.error.toString().replaceFirst(
+                    'Exception: ',
+                    '',
+                  ),
+                  onRetry: _reload,
+                );
+              }
+              if (!snapshot.hasData) {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 100),
+                  child: Center(child: CircularProgressIndicator(color: _navy)),
+                );
+              }
+              return _HomeContent(
+                data: snapshot.data!,
+                onGoTab: widget.onGoTab,
+                onRefresh: _reload,
+              );
+            },
           ),
         ],
       ),
@@ -132,9 +128,129 @@ class _HomeBody extends StatelessWidget {
   }
 }
 
+class _HomeData {
+  const _HomeData({required this.records, required this.equipments});
+
+  final List<WorkoutRecord> records;
+  final EquipmentList equipments;
+}
+
+class _HomeContent extends StatelessWidget {
+  const _HomeContent({
+    required this.data,
+    required this.onGoTab,
+    required this.onRefresh,
+  });
+
+  final _HomeData data;
+  final ValueChanged<int> onGoTab;
+  final VoidCallback onRefresh;
+
+  String _racketSub(RacketSummary racket) {
+    if (racket.stringName == null) return '스트링 기록 없음';
+    final tension = racket.tension == null ? '' : ' · ${racket.tension}lbs';
+    final elapsed = racket.strungAt == null
+        ? ''
+        : ' · ${DateTime.now().difference(racket.strungAt!).inDays}일째';
+    return '스트링 ${racket.stringName}$tension$elapsed';
+  }
+
+  String _shoeSub(ShoeSummary shoe) {
+    if (shoe.purchaseDate == null) return '구매일 미입력';
+    final date = shoe.purchaseDate!;
+    return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')} 구매';
+  }
+
+  Future<void> _openRacket(BuildContext context, RacketSummary racket) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RacketDetailScreen(equipmentId: racket.id),
+      ),
+    );
+    onRefresh();
+  }
+
+  Future<void> _openShoe(BuildContext context, ShoeSummary shoe) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ShoeDetailScreen(equipmentId: shoe.id)),
+    );
+    onRefresh();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rackets = data.equipments.rackets
+        .where((racket) => racket.inUse)
+        .take(3)
+        .toList();
+    final shoes = data.equipments.shoes
+        .where((shoe) => shoe.inUse)
+        .take(2)
+        .toList();
+    final hasEquipment = rackets.isNotEmpty || shoes.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _MonthlyCard(records: data.records),
+        const SizedBox(height: 32),
+        _SectionTitle(
+          title: '내 장비',
+          action: '전체보기',
+          onAction: () => onGoTab(2),
+        ),
+        const SizedBox(height: 12),
+        if (!hasEquipment)
+          const _EmptyCard(message: '등록된 장비가 없어요')
+        else ...[
+          if (rackets.isNotEmpty)
+            SizedBox(
+              height: 92,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                itemCount: rackets.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final racket = rackets[index];
+                  return _GearCard(
+                    icon: Icons.sports_tennis_outlined,
+                    name: '${racket.brand} ${racket.name}',
+                    sub: _racketSub(racket),
+                    width: 340,
+                    onTap: () => _openRacket(context, racket),
+                  );
+                },
+              ),
+            ),
+          if (rackets.isNotEmpty && shoes.isNotEmpty)
+            const SizedBox(height: 12),
+          for (final shoe in shoes) ...[
+            _GearCard(
+              icon: Icons.ice_skating_outlined,
+              name: '${shoe.brand} ${shoe.name}',
+              sub: _shoeSub(shoe),
+              onTap: () => _openShoe(context, shoe),
+            ),
+            if (shoe != shoes.last) const SizedBox(height: 12),
+          ],
+        ],
+        const SizedBox(height: 28),
+        const _SectionTitle(title: '이번 달 지출'),
+        const SizedBox(height: 12),
+        const _EmptyCard(message: '지출 기능은 준비 중이에요'),
+      ],
+    );
+  }
+}
+
 /// 상단: 날짜 + 인사말 + 프로필
 class _Header extends StatelessWidget {
-  const _Header();
+  const _Header({required this.nickname});
+
+  final String nickname;
 
   static const _weekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -151,19 +267,22 @@ class _Header extends StatelessWidget {
             children: [
               Text(date, style: const TextStyle(fontSize: 14, color: _gray)),
               const SizedBox(height: 4),
-              const Text(
-                '지수님, 오늘도 코트로!',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+              Text(
+                '$nickname님, 오늘도 코트로!',
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ],
           ),
         ),
-        const CircleAvatar(
+        CircleAvatar(
           radius: 24,
           backgroundColor: _navy,
           child: Text(
-            '지',
-            style: TextStyle(
+            nickname.isEmpty ? '회' : nickname.characters.first,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -177,16 +296,16 @@ class _Header extends StatelessWidget {
 
 /// 이번 달 운동 횟수 카드
 class _MonthlyCard extends StatelessWidget {
-  const _MonthlyCard();
+  const _MonthlyCard({required this.records});
+
+  final List<WorkoutRecord> records;
 
   static const _cell = 18.0; // 달력 한 칸 자리 (점 13 + 여백)
-
-  /// 이번 달 운동한 날짜(일) — 임시 데이터
-  static const _worked = {1, 3, 4, 6, 8, 10, 11, 13, 15, 17, 18, 20, 22, 25};
 
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final worked = records.map((record) => record.date.day).toSet();
     // 다음 달 0일 = 이번 달 마지막 날
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
     final firstOffset =
@@ -204,28 +323,28 @@ class _MonthlyCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   '이번 달 운동',
                   style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text.rich(
                   TextSpan(
                     children: [
                       TextSpan(
-                        text: '14',
-                        style: TextStyle(
+                        text: '${records.length}',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 52,
                           fontWeight: FontWeight.w800,
                           height: 1.1,
                         ),
                       ),
-                      TextSpan(
+                      const TextSpan(
                         text: ' 회',
                         style: TextStyle(color: Colors.white70, fontSize: 18),
                       ),
@@ -263,7 +382,7 @@ class _MonthlyCard extends StatelessWidget {
                           ? null
                           : Center(
                               child: _DayCell(
-                                worked: _worked.contains(day),
+                                worked: worked.contains(day),
                                 isToday: day == now.day,
                                 isFuture: day > now.day,
                               ),
@@ -350,103 +469,82 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-/// 장비 카드 (아이콘 · 이름 · 설명 · 상태 배지)
+/// 홈 장비 카드 — 누르면 해당 장비 상세로 이동한다
 class _GearCard extends StatelessWidget {
   const _GearCard({
     required this.icon,
     required this.name,
     required this.sub,
-    required this.badge,
-    required this.badgeColor,
-    required this.badgeBg,
+    required this.onTap,
     this.width,
   });
 
   final IconData icon;
   final String name;
   final String sub;
-  final String badge;
-  final Color badgeColor;
-  final Color badgeBg;
+  final VoidCallback onTap;
   final double? width; // 가로 스크롤용 카드는 폭 고정
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: width,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: _lightNavy,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: _navy),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: _lightNavy,
+                    borderRadius: BorderRadius.circular(14),
                   ),
+                  child: Icon(icon, color: _navy),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  sub,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, color: _gray),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        sub,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13, color: _gray),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: badgeBg,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              badge,
-              style: TextStyle(
-                color: badgeColor,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-/// 지출 카드 — 이번 달 합계 + 최근 지출 1건
-class _ExpenseCard extends StatelessWidget {
-  const _ExpenseCard({
-    required this.total,
-    required this.recent,
-    required this.recentAmount,
-  });
+class _EmptyCard extends StatelessWidget {
+  const _EmptyCard({required this.message});
 
-  final String total; // 이번 달 합계
-  final String recent; // 최근 지출 설명 (언제 · 무엇)
-  final String recentAmount; // 최근 지출 금액
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -457,47 +555,39 @@ class _ExpenseCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            total,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-          // 최근 지출 한 줄
-          Row(
-            children: [
-              const Text(
-                '최근',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: _gray,
-                  fontWeight: FontWeight.w700,
-                ),
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: _gray),
+      ),
+    );
+  }
+}
+
+class _HomeError extends StatelessWidget {
+  const _HomeError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 72),
+      child: Center(
+        child: Column(
+          children: [
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: onRetry,
+              child: const Text(
+                '다시 시도',
+                style: TextStyle(color: _navy, fontWeight: FontWeight.w700),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  recent,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                recentAmount,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

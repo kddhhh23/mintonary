@@ -34,12 +34,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     setState(() => _loading = true);
     try {
-      final token = await AuthApi.login(
+      final result = await AuthApi.login(
         _idController.text.trim(),
         _passwordController.text,
       );
       if (!mounted) return;
-      Session.accessToken = token; // API 호출에 쓰도록 세션에 보관
+      Session.accessToken = result.accessToken; // API 호출에 쓰도록 세션에 보관
+      Session.nickname = result.nickname;
       // 홈으로 이동 — pushReplacement: 로그인 화면을 스택에서 빼서 뒤로가기로 못 돌아오게 함
       Navigator.pushReplacement(
         context,
