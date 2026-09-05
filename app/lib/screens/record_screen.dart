@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_repositories.dart';
 import '../models/workout_record.dart';
-import '../services/record_api.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -84,7 +84,10 @@ class _RecordScreenState extends State<RecordScreen> {
       _error = null;
     });
     try {
-      final records = await RecordApi.fetchMonth(_month.year, _month.month);
+      final records = await AppRepositories.records.fetchRecordMonth(
+        _month.year,
+        _month.month,
+      );
       if (!mounted) return;
       setState(() => _records = records);
     } catch (e) {
@@ -149,7 +152,7 @@ class _RecordScreenState extends State<RecordScreen> {
     );
     if (confirmed != true) return;
     try {
-      await RecordApi.delete(record.id);
+      await AppRepositories.records.deleteRecord(record.id);
       await _loadMonth();
     } catch (e) {
       if (!mounted) return;
@@ -527,10 +530,7 @@ class _RecordCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: type.bg,
                   borderRadius: BorderRadius.circular(6),
@@ -658,7 +658,7 @@ class _RecordFormScreenState extends State<_RecordFormScreen> {
     }
     setState(() => _saving = true);
     try {
-      await RecordApi.create(
+      await AppRepositories.records.createRecord(
         date: _date,
         type: _type.serverValue,
         title: title,
@@ -939,10 +939,7 @@ class _DashedBorderPainter extends CustomPainter {
 
     final path = Path()
       ..addRRect(
-        RRect.fromRectAndRadius(
-          Offset.zero & size,
-          const Radius.circular(16),
-        ),
+        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(16)),
       );
 
     // 경로를 따라가며 일정 간격으로 짧은 선을 그린다
@@ -951,10 +948,7 @@ class _DashedBorderPainter extends CustomPainter {
     for (final metric in path.computeMetrics()) {
       var distance = 0.0;
       while (distance < metric.length) {
-        canvas.drawPath(
-          metric.extractPath(distance, distance + dash),
-          paint,
-        );
+        canvas.drawPath(metric.extractPath(distance, distance + dash), paint);
         distance += dash + gap;
       }
     }

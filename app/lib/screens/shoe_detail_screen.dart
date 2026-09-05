@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_repositories.dart';
 import '../models/equipment.dart';
-import '../services/equipment_api.dart';
 
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
@@ -30,7 +30,9 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
 
   Future<void> _load() async {
     try {
-      final detail = await EquipmentApi.fetchDetail(widget.equipmentId);
+      final detail = await AppRepositories.equipment.fetchDetail(
+        widget.equipmentId,
+      );
       if (!mounted) return;
       setState(() {
         _detail = detail;
@@ -56,7 +58,7 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
     );
     if (result == null || result == detail.inUse) return;
     try {
-      await EquipmentApi.setStatus(widget.equipmentId, result);
+      await AppRepositories.equipment.setStatus(widget.equipmentId, result);
       await _load();
     } catch (e) {
       if (!mounted) return;

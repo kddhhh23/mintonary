@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_repositories.dart';
 import '../models/equipment.dart';
-import '../services/equipment_api.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -64,7 +64,9 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
 
   Future<void> _load() async {
     try {
-      final detail = await EquipmentApi.fetchDetail(widget.equipmentId);
+      final detail = await AppRepositories.equipment.fetchDetail(
+        widget.equipmentId,
+      );
       if (!mounted) return;
       setState(() {
         _detail = detail;
@@ -103,7 +105,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     );
     if (result == null || result == detail.inUse) return;
     try {
-      await EquipmentApi.setStatus(widget.equipmentId, result);
+      await AppRepositories.equipment.setStatus(widget.equipmentId, result);
       await _load();
     } catch (e) {
       if (mounted) _showError(e);
@@ -122,7 +124,10 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     );
     if (result == null) return;
     try {
-      await EquipmentApi.setStringAlarm(widget.equipmentId, result);
+      await AppRepositories.equipment.setStringAlarm(
+        widget.equipmentId,
+        result,
+      );
       await _load();
     } catch (e) {
       if (mounted) _showError(e);
@@ -146,7 +151,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     );
     if (result == null) return;
     try {
-      await EquipmentApi.addStringChange(
+      await AppRepositories.equipment.addStringChange(
         widget.equipmentId,
         name: result.name,
         tension: result.tension,
@@ -175,7 +180,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     );
     if (result == null) return;
     try {
-      await EquipmentApi.addGripChange(
+      await AppRepositories.equipment.addGripChange(
         widget.equipmentId,
         name: result.name,
         type: result.type,
@@ -213,7 +218,10 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
   Future<void> _deleteStringHistory(int historyId) async {
     if (!await _confirmDeleteHistory()) return;
     try {
-      await EquipmentApi.deleteStringChange(widget.equipmentId, historyId);
+      await AppRepositories.equipment.deleteStringChange(
+        widget.equipmentId,
+        historyId,
+      );
       await _load();
     } catch (e) {
       if (mounted) _showError(e);
@@ -223,7 +231,10 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
   Future<void> _deleteGripHistory(int historyId) async {
     if (!await _confirmDeleteHistory()) return;
     try {
-      await EquipmentApi.deleteGripChange(widget.equipmentId, historyId);
+      await AppRepositories.equipment.deleteGripChange(
+        widget.equipmentId,
+        historyId,
+      );
       await _load();
     } catch (e) {
       if (mounted) _showError(e);
@@ -421,7 +432,9 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    alarm == null ? '다음 교체 알림 없음' : '다음 교체 ${_formatDate(alarm)}',
+                    alarm == null
+                        ? '다음 교체 알림 없음'
+                        : '다음 교체 ${_formatDate(alarm)}',
                     style: const TextStyle(fontSize: 13, color: _gray),
                   ),
                 ),
@@ -932,8 +945,9 @@ class _StringChangeSheet extends StatefulWidget {
 }
 
 class _StringChangeSheetState extends State<_StringChangeSheet> {
-  late final _nameController =
-      TextEditingController(text: widget.initialName ?? '');
+  late final _nameController = TextEditingController(
+    text: widget.initialName ?? '',
+  );
   late final _tensionController = TextEditingController(
     text: widget.initialTension == null ? '' : '${widget.initialTension}',
   );
@@ -1065,8 +1079,9 @@ class _GripChangeSheet extends StatefulWidget {
 }
 
 class _GripChangeSheetState extends State<_GripChangeSheet> {
-  late final _nameController =
-      TextEditingController(text: widget.initialName ?? '');
+  late final _nameController = TextEditingController(
+    text: widget.initialName ?? '',
+  );
   late String? _type = widget.initialType;
 
   /// 교체일 — 기본은 오늘
@@ -1096,10 +1111,7 @@ class _GripChangeSheetState extends State<_GripChangeSheet> {
     final name = _nameController.text.trim();
     final type = _type;
     if (name.isEmpty || type == null) return;
-    Navigator.pop(
-      context,
-      _GripChange(name: name, type: type, date: _date),
-    );
+    Navigator.pop(context, _GripChange(name: name, type: type, date: _date));
   }
 
   @override

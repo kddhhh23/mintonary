@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../data/app_repositories.dart';
 import '../models/expense.dart';
-import '../services/expense_api.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -45,7 +45,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
       _error = null;
     });
     try {
-      final data = await ExpenseApi.fetchMonth(
+      final data = await AppRepositories.expenses.fetchExpenseMonth(
         requestedMonth.year,
         requestedMonth.month,
       );
@@ -104,7 +104,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     );
     if (confirmed != true) return;
     try {
-      await ExpenseApi.delete(expense.id);
+      await AppRepositories.expenses.deleteExpense(expense.id);
       await _load();
     } catch (error) {
       if (!mounted) return;
@@ -477,7 +477,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     try {
       final expense = widget.expense;
       if (expense == null) {
-        await ExpenseApi.create(
+        await AppRepositories.expenses.createExpense(
           date: _date,
           category: _category,
           title: title,
@@ -485,7 +485,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
           memo: _memoController.text.trim(),
         );
       } else {
-        await ExpenseApi.update(
+        await AppRepositories.expenses.updateExpense(
           expense.id,
           date: _date,
           category: _category,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../services/equipment_api.dart';
+import '../data/app_repositories.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -60,8 +60,8 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
     setState(() => _loadError = null);
     try {
       final results = await Future.wait([
-        EquipmentApi.fetchRacketModels(),
-        EquipmentApi.fetchShoeModels(),
+        AppRepositories.equipment.fetchRacketModels(),
+        AppRepositories.equipment.fetchShoeModels(),
       ]);
       if (!mounted) return;
       setState(() {
@@ -222,7 +222,7 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
 
     setState(() => _submitting = true);
     try {
-      await EquipmentApi.register(
+      await AppRepositories.equipment.register(
         type: _type,
         modelId: modelId,
         purchaseDate: _purchaseDate,

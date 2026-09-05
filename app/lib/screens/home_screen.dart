@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_repositories.dart';
 import '../models/equipment.dart';
 import '../models/expense.dart';
 import '../models/workout_record.dart';
-import '../services/equipment_api.dart';
-import '../services/expense_api.dart';
-import '../services/record_api.dart';
 import '../services/session.dart';
 import 'equipment_screen.dart';
 import 'expense_screen.dart';
@@ -93,9 +91,9 @@ class _HomeBodyState extends State<_HomeBody> {
   Future<_HomeData> _load() async {
     final now = DateTime.now();
     final results = await Future.wait<Object>([
-      RecordApi.fetchMonth(now.year, now.month),
-      EquipmentApi.fetchEquipments(),
-      ExpenseApi.fetchMonth(now.year, now.month),
+      AppRepositories.records.fetchRecordMonth(now.year, now.month),
+      AppRepositories.equipment.fetchEquipments(),
+      AppRepositories.expenses.fetchExpenseMonth(now.year, now.month),
     ]);
     return _HomeData(
       records: results[0] as List<WorkoutRecord>,

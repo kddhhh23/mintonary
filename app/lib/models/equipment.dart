@@ -4,6 +4,12 @@ DateTime? _date(String? value) => value == null ? null : DateTime.parse(value);
 
 /// 등록 화면 드롭다운용 라켓 모델
 class RacketModelOption {
+  const RacketModelOption({
+    required this.id,
+    required this.brand,
+    required this.name,
+  });
+
   RacketModelOption.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       brand = json['brand'] as String,
@@ -16,6 +22,12 @@ class RacketModelOption {
 
 /// 등록 화면 드롭다운용 신발 모델
 class ShoeModelOption {
+  const ShoeModelOption({
+    required this.id,
+    required this.brand,
+    required this.name,
+  });
+
   ShoeModelOption.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       brand = json['brand'] as String,
@@ -28,6 +40,8 @@ class ShoeModelOption {
 
 /// 장비 탭 목록
 class EquipmentList {
+  const EquipmentList({required this.rackets, required this.shoes});
+
   EquipmentList.fromJson(Map<String, dynamic> json)
     : rackets = (json['rackets'] as List)
           .map((e) => RacketSummary.fromJson(e as Map<String, dynamic>))
@@ -41,6 +55,20 @@ class EquipmentList {
 }
 
 class RacketSummary {
+  const RacketSummary({
+    required this.id,
+    required this.brand,
+    required this.name,
+    required this.purchaseDate,
+    required this.price,
+    required this.inUse,
+    required this.stringName,
+    required this.tension,
+    required this.strungAt,
+    required this.gripName,
+    required this.wrappedAt,
+  });
+
   RacketSummary.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       brand = json['brand'] as String,
@@ -68,6 +96,15 @@ class RacketSummary {
 }
 
 class ShoeSummary {
+  const ShoeSummary({
+    required this.id,
+    required this.brand,
+    required this.name,
+    required this.purchaseDate,
+    required this.price,
+    required this.inUse,
+  });
+
   ShoeSummary.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       brand = json['brand'] as String,
@@ -86,6 +123,17 @@ class ShoeSummary {
 
 /// 장비 상세 — type에 따라 racket 또는 shoe 중 하나만 채워진다
 class EquipmentDetail {
+  const EquipmentDetail({
+    required this.id,
+    required this.type,
+    required this.purchaseDate,
+    required this.price,
+    required this.memo,
+    required this.inUse,
+    required this.racket,
+    required this.shoe,
+  });
+
   EquipmentDetail.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       type = json['type'] as String,
@@ -111,6 +159,18 @@ class EquipmentDetail {
 }
 
 class RacketInfo {
+  const RacketInfo({
+    required this.brand,
+    required this.series,
+    required this.name,
+    required this.weight,
+    required this.balance,
+    required this.flex,
+    required this.stringAlarmDate,
+    required this.stringHistories,
+    required this.gripHistories,
+  });
+
   RacketInfo.fromJson(Map<String, dynamic> json)
     : brand = json['brand'] as String,
       series = json['series'] as String?,
@@ -142,6 +202,12 @@ class RacketInfo {
 }
 
 class ShoeInfo {
+  const ShoeInfo({
+    required this.brand,
+    required this.name,
+    required this.width,
+  });
+
   ShoeInfo.fromJson(Map<String, dynamic> json)
     : brand = json['brand'] as String,
       name = json['name'] as String,
@@ -153,6 +219,13 @@ class ShoeInfo {
 }
 
 class StringHistoryItem {
+  const StringHistoryItem({
+    required this.id,
+    required this.name,
+    required this.tension,
+    required this.strungAt,
+  });
+
   StringHistoryItem.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       name = json['name'] as String,
@@ -166,6 +239,13 @@ class StringHistoryItem {
 }
 
 class GripHistoryItem {
+  const GripHistoryItem({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.wrappedAt,
+  });
+
   GripHistoryItem.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       name = json['name'] as String,

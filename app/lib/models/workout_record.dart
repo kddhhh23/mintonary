@@ -1,5 +1,16 @@
 /// 운동 기록 API 응답 모델
 class WorkoutRecord {
+  const WorkoutRecord({
+    required this.id,
+    required this.date,
+    required this.type,
+    required this.title,
+    this.place,
+    this.coach,
+    this.result,
+    this.memo,
+  });
+
   WorkoutRecord.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       date = DateTime.parse(json['date'] as String),

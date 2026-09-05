@@ -18,6 +18,15 @@ enum ExpenseCategory {
 }
 
 class ExpenseItem {
+  const ExpenseItem({
+    required this.id,
+    required this.date,
+    required this.category,
+    required this.title,
+    required this.amount,
+    this.memo,
+  });
+
   ExpenseItem.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       date = DateTime.parse(json['date'] as String),
@@ -35,6 +44,12 @@ class ExpenseItem {
 }
 
 class ExpenseMonth {
+  const ExpenseMonth({
+    required this.totalAmount,
+    required this.recentExpense,
+    required this.expenses,
+  });
+
   ExpenseMonth.fromJson(Map<String, dynamic> json)
     : totalAmount = json['totalAmount'] as int,
       recentExpense = json['recentExpense'] == null
