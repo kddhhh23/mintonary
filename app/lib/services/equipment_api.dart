@@ -77,6 +77,7 @@ class EquipmentApi {
     required int modelId,
     DateTime? purchaseDate,
     int? price,
+    bool addToExpenses = false,
     String? stringName,
     int? tension,
     DateTime? strungAt,
@@ -89,6 +90,7 @@ class EquipmentApi {
       'modelId': modelId,
       if (purchaseDate != null) 'purchaseDate': _iso(purchaseDate),
       'price': ?price,
+      'addToExpenses': addToExpenses,
       if (stringName != null && stringName.isNotEmpty)
         'string': {
           'name': stringName,
@@ -120,7 +122,9 @@ class EquipmentApi {
     required DateTime strungAt,
   }) async {
     final response = await http.post(
-      Uri.parse('${ApiClient.baseUrl}/api/equipments/$equipmentId/string-changes'),
+      Uri.parse(
+        '${ApiClient.baseUrl}/api/equipments/$equipmentId/string-changes',
+      ),
       headers: ApiClient.authJsonHeaders,
       body: jsonEncode({
         'name': name,
@@ -152,7 +156,9 @@ class EquipmentApi {
     required DateTime wrappedAt,
   }) async {
     final response = await http.post(
-      Uri.parse('${ApiClient.baseUrl}/api/equipments/$equipmentId/grip-changes'),
+      Uri.parse(
+        '${ApiClient.baseUrl}/api/equipments/$equipmentId/grip-changes',
+      ),
       headers: ApiClient.authJsonHeaders,
       body: jsonEncode({
         'name': name,
@@ -180,7 +186,9 @@ class EquipmentApi {
   /// 알림 날짜 변경 — null이면 알림 해제
   static Future<void> setStringAlarm(int equipmentId, DateTime? date) async {
     final response = await http.patch(
-      Uri.parse('${ApiClient.baseUrl}/api/equipments/$equipmentId/string-alarm'),
+      Uri.parse(
+        '${ApiClient.baseUrl}/api/equipments/$equipmentId/string-alarm',
+      ),
       headers: ApiClient.authJsonHeaders,
       body: jsonEncode({'alarmDate': date == null ? null : _iso(date)}),
     );

@@ -66,17 +66,27 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
       if (!mounted) return;
       setState(() {
         _racketOptions = (results[0] as List)
-            .map((m) => (id: m.id as int, brand: m.brand as String, name: m.name as String))
+            .map(
+              (m) => (
+                id: m.id as int,
+                brand: m.brand as String,
+                name: m.name as String,
+              ),
+            )
             .toList();
         _shoeOptions = (results[1] as List)
-            .map((m) => (id: m.id as int, brand: m.brand as String, name: m.name as String))
+            .map(
+              (m) => (
+                id: m.id as int,
+                brand: m.brand as String,
+                name: m.name as String,
+              ),
+            )
             .toList();
       });
     } catch (e) {
       if (!mounted) return;
-      setState(
-        () => _loadError = e.toString().replaceFirst('Exception: ', ''),
-      );
+      setState(() => _loadError = e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -140,10 +150,43 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
   String _formatDate(DateTime d) =>
       '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
 
+  String _formatPrice(int price) => price.toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => ',',
+  );
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<bool> _askAddToExpenses({
+    required String equipmentName,
+    required int price,
+  }) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('지출 내역에 추가'),
+        content: Text(
+          '$equipmentName · ${_formatPrice(price)}원을\n지출 내역에도 추가할까요?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('장비만 등록'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: _navy),
+            child: const Text('지출에도 추가'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   Future<void> _submit() async {
@@ -153,8 +196,29 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
       _showMessage('브랜드와 모델을 선택해 주세요.');
       return;
     }
-    final modelId =
-        _byBrand[brand]!.firstWhere((option) => option.name == model).id;
+    final modelId = _byBrand[brand]!
+        .firstWhere((option) => option.name == model)
+        .id;
+
+    final priceText = _priceController.text.trim();
+    final price = priceText.isEmpty ? null : int.tryParse(priceText);
+    if (priceText.isNotEmpty && (price == null || price <= 0)) {
+      _showMessage('가격은 0원보다 큰 숫자로 입력해 주세요.');
+      return;
+    }
+    if (price != null && price > 2147483647) {
+      _showMessage('가격이 너무 큽니다.');
+      return;
+    }
+
+    var addToExpenses = false;
+    if (price != null) {
+      addToExpenses = await _askAddToExpenses(
+        equipmentName: '$brand $model',
+        price: price,
+      );
+      if (!mounted) return;
+    }
 
     setState(() => _submitting = true);
     try {
@@ -162,7 +226,8 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
         type: _type,
         modelId: modelId,
         purchaseDate: _purchaseDate,
-        price: int.tryParse(_priceController.text),
+        price: price,
+        addToExpenses: addToExpenses,
         stringName: _isRacket ? _stringController.text.trim() : null,
         tension: _isRacket ? int.tryParse(_tensionController.text) : null,
         strungAt: _isRacket ? (_stringDate ?? _purchaseDate) : null,
@@ -293,10 +358,7 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
             const _SectionLabel('스트링'),
             _Labeled(
               label: '스트링명',
-              child: AppTextField(
-                hint: '입력',
-                controller: _stringController,
-              ),
+              child: AppTextField(hint: '입력', controller: _stringController),
             ),
             const SizedBox(height: 16),
             _Labeled(

@@ -150,3 +150,23 @@ CREATE TABLE workout_record (
     PRIMARY KEY (id),
     CONSTRAINT fk_workout_record_member FOREIGN KEY (member_id) REFERENCES member (id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- =========================
+-- 지출 기록
+-- =========================
+
+CREATE TABLE expense (
+    id           BIGINT       NOT NULL AUTO_INCREMENT,
+    member_id    BIGINT       NOT NULL,
+    expense_date DATE         NOT NULL,
+    category     VARCHAR(20)  NOT NULL COMMENT 'COURT, LESSON, SHUTTLECOCK, EQUIPMENT, TOURNAMENT, OTHER',
+    title        VARCHAR(100) NOT NULL,
+    amount       INT          NOT NULL,
+    memo         VARCHAR(500) NULL,
+    created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_expense_member_date (member_id, expense_date),
+    CONSTRAINT fk_expense_member FOREIGN KEY (member_id) REFERENCES member (id),
+    CONSTRAINT chk_expense_amount CHECK (amount > 0)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

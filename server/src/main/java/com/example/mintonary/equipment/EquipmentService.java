@@ -16,6 +16,9 @@ import com.example.mintonary.equipment.model.ShoeModelRepository;
 import com.example.mintonary.equipment.model.StringModel;
 import com.example.mintonary.equipment.model.GripModelRepository;
 import com.example.mintonary.equipment.model.StringModelRepository;
+import com.example.mintonary.expense.Expense;
+import com.example.mintonary.expense.ExpenseCategory;
+import com.example.mintonary.expense.ExpenseRepository;
 import com.example.mintonary.member.Member;
 import com.example.mintonary.member.MemberRepository;
 import java.time.LocalDate;
@@ -41,6 +44,7 @@ public class EquipmentService {
     private final ShoeModelRepository shoeModelRepository;
     private final StringModelRepository stringModelRepository;
     private final GripModelRepository gripModelRepository;
+    private final ExpenseRepository expenseRepository;
 
     /** 장비 등록 — 라켓이면 초기 스트링/그립 이력까지 함께 기록한다 */
     @Transactional
@@ -54,9 +58,11 @@ public class EquipmentService {
                 request.memo()
         ));
 
+        String equipmentName;
         if (request.type() == EquipmentType.RACKET) {
             RacketModel model = racketModelRepository.findById(request.modelId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 라켓 모델입니다."));
+            equipmentName = model.getBrand() + " " + model.getName();
             MyRacket myRacket = myRacketRepository.save(MyRacket.create(equipment, model));
 
             // 교체일을 따로 안 보냈으면 구매일을 쓴다 (앱 등록 화면과 같은 규칙)
@@ -88,7 +94,22 @@ public class EquipmentService {
         } else {
             ShoeModel model = shoeModelRepository.findById(request.modelId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신발 모델입니다."));
+            equipmentName = model.getBrand() + " " + model.getName();
             myShoeRepository.save(MyShoe.create(equipment, model));
+        }
+
+        if (Boolean.TRUE.equals(request.addToExpenses())) {
+            if (request.price() == null || request.price() <= 0) {
+                throw new IllegalArgumentException("지출에 추가하려면 장비 가격이 필요합니다.");
+            }
+            expenseRepository.save(Expense.create(
+                    member,
+                    firstNonNull(request.purchaseDate(), LocalDate.now()),
+                    ExpenseCategory.EQUIPMENT,
+                    equipmentName,
+                    request.price(),
+                    null
+            ));
         }
 
         return equipment.getId();

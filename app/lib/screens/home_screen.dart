@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../models/equipment.dart';
+import '../models/expense.dart';
 import '../models/workout_record.dart';
 import '../services/equipment_api.dart';
+import '../services/expense_api.dart';
 import '../services/record_api.dart';
 import '../services/session.dart';
 import 'equipment_screen.dart';
+import 'expense_screen.dart';
 import 'racket_detail_screen.dart';
 import 'record_screen.dart';
 import 'shoe_detail_screen.dart';
@@ -25,12 +28,27 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const _tabNames = ['홈', '기록', '장비', '지출'];
-
   /// 현재 탭 — 0 홈, 1 기록, 2 장비, 3 지출
   int _tab = 0;
+  int _expenseScreenVersion = 0;
 
   void _goTab(int index) => setState(() => _tab = index);
+
+  Future<void> _add() async {
+    if (_tab != 3) {
+      _goTab(1);
+      return;
+    }
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ExpenseFormScreen(initialDate: DateTime.now()),
+      ),
+    );
+    if (saved == true && mounted) {
+      setState(() => _expenseScreenVersion++);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,16 +58,14 @@ class _HomeScreenState extends State<HomeScreen> {
           0 => _HomeBody(onGoTab: _goTab),
           1 => const RecordScreen(),
           2 => const EquipmentScreen(),
-          // TODO: 지출 화면 만들면 교체
-          _ => Center(
-            child: Text(
-              '${_tabNames[_tab]} 화면 준비 중',
-              style: const TextStyle(color: _gray),
-            ),
-          ),
+          _ => ExpenseScreen(key: ValueKey(_expenseScreenVersion)),
         },
       ),
-      bottomNavigationBar: _BottomBar(current: _tab, onTap: _goTab),
+      bottomNavigationBar: _BottomBar(
+        current: _tab,
+        onTap: _goTab,
+        onAdd: _add,
+      ),
     );
   }
 }
@@ -79,10 +95,12 @@ class _HomeBodyState extends State<_HomeBody> {
     final results = await Future.wait<Object>([
       RecordApi.fetchMonth(now.year, now.month),
       EquipmentApi.fetchEquipments(),
+      ExpenseApi.fetchMonth(now.year, now.month),
     ]);
     return _HomeData(
       records: results[0] as List<WorkoutRecord>,
       equipments: results[1] as EquipmentList,
+      expenses: results[2] as ExpenseMonth,
     );
   }
 
@@ -129,10 +147,15 @@ class _HomeBodyState extends State<_HomeBody> {
 }
 
 class _HomeData {
-  const _HomeData({required this.records, required this.equipments});
+  const _HomeData({
+    required this.records,
+    required this.equipments,
+    required this.expenses,
+  });
 
   final List<WorkoutRecord> records;
   final EquipmentList equipments;
+  final ExpenseMonth expenses;
 }
 
 class _HomeContent extends StatelessWidget {
@@ -238,9 +261,13 @@ class _HomeContent extends StatelessWidget {
           ],
         ],
         const SizedBox(height: 28),
-        const _SectionTitle(title: '이번 달 지출'),
+        _SectionTitle(
+          title: '이번 달 지출',
+          action: '전체보기',
+          onAction: () => onGoTab(3),
+        ),
         const SizedBox(height: 12),
-        const _EmptyCard(message: '지출 기능은 준비 중이에요'),
+        _ExpenseHomeCard(month: data.expenses, onTap: () => onGoTab(3)),
       ],
     );
   }
@@ -564,6 +591,87 @@ class _EmptyCard extends StatelessWidget {
   }
 }
 
+class _ExpenseHomeCard extends StatelessWidget {
+  const _ExpenseHomeCard({required this.month, required this.onTap});
+
+  final ExpenseMonth month;
+  final VoidCallback onTap;
+
+  String _amount(int value) => value.toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => ',',
+  );
+
+  String _dateLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(date.year, date.month, date.day);
+    final days = today.difference(target).inDays;
+    if (days == 0) return '오늘';
+    if (days == 1) return '어제';
+    return '${date.month}월 ${date.day}일';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final recent = month.recentExpense;
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${_amount(month.totalAmount)}원',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              if (recent == null)
+                const Text('이번 달 지출 내역이 없어요', style: TextStyle(color: _gray))
+              else
+                Row(
+                  children: [
+                    const Text(
+                      '최근',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _gray,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '${_dateLabel(recent.date)} · ${recent.title}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${_amount(recent.amount)}원',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _HomeError extends StatelessWidget {
   const _HomeError({required this.message, required this.onRetry});
 
@@ -595,10 +703,15 @@ class _HomeError extends StatelessWidget {
 
 /// 하단 탭바 (가운데 + 버튼)
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.current, required this.onTap});
+  const _BottomBar({
+    required this.current,
+    required this.onTap,
+    required this.onAdd,
+  });
 
   final int current; // 현재 선택된 탭 번호
   final ValueChanged<int> onTap;
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -617,7 +730,7 @@ class _BottomBar extends StatelessWidget {
         children: [
           item(0, Icons.home_rounded, '홈'),
           item(1, Icons.calendar_today_outlined, '기록'),
-          const _AddButton(),
+          _AddButton(onPressed: onAdd),
           item(2, Icons.sports_tennis_outlined, '장비'),
           item(3, Icons.account_balance_wallet_outlined, '지출'),
         ],
@@ -628,7 +741,9 @@ class _BottomBar extends StatelessWidget {
 
 /// 가운데 + 버튼 — 바 안에 두고 살짝만 위로 올린다
 class _AddButton extends StatelessWidget {
-  const _AddButton();
+  const _AddButton({required this.onPressed});
+
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -640,7 +755,7 @@ class _AddButton extends StatelessWidget {
             width: 60,
             height: 60,
             child: FilledButton(
-              onPressed: () {}, // TODO: 기록 추가 화면 이동
+              onPressed: onPressed,
               style: FilledButton.styleFrom(
                 backgroundColor: _navy,
                 shape: const CircleBorder(),
