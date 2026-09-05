@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'data/app_repositories.dart';
 import 'screens/home_screen.dart';
@@ -27,6 +28,9 @@ class MintonaryApp extends StatelessWidget {
     return MaterialApp(
       title: '민터너리',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('ko', 'KR'),
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [Locale('ko', 'KR')],
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF1F3F8),
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3D5379)),

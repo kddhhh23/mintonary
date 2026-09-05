@@ -3,6 +3,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../data/app_repositories.dart';
 import '../models/equipment.dart';
+import '../utils/thousands_separator_input_formatter.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -57,7 +58,9 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
       _model = info.name;
     }
     _purchaseDate = widget.detail.purchaseDate;
-    _priceController.text = widget.detail.price?.toString() ?? '';
+    _priceController.text = widget.detail.price == null
+        ? ''
+        : formatWithThousandsSeparators(widget.detail.price!);
     _memoController.text = widget.detail.memo ?? '';
     _loadModels();
   }
@@ -138,7 +141,7 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
       _showMessage('브랜드와 모델을 선택해 주세요.');
       return;
     }
-    final priceText = _priceController.text.trim();
+    final priceText = removeThousandsSeparators(_priceController.text.trim());
     final price = priceText.isEmpty ? null : int.tryParse(priceText);
     if (priceText.isNotEmpty && (price == null || price <= 0)) {
       _showMessage('가격은 0원보다 큰 숫자로 입력해 주세요.');
@@ -312,6 +315,7 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
               hint: '원',
               controller: _priceController,
               keyboardType: TextInputType.number,
+              inputFormatters: const [ThousandsSeparatorInputFormatter()],
             ),
           ),
           const SizedBox(height: 16),

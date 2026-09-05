@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../data/app_repositories.dart';
+import '../utils/thousands_separator_input_formatter.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -221,7 +222,7 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
         ? '$customBrand $customModel'
         : '$brand ${_directModelInput ? customModel : model}';
 
-    final priceText = _priceController.text.trim();
+    final priceText = removeThousandsSeparators(_priceController.text.trim());
     final price = priceText.isEmpty ? null : int.tryParse(priceText);
     if (priceText.isNotEmpty && (price == null || price <= 0)) {
       _showMessage('가격은 0원보다 큰 숫자로 입력해 주세요.');
@@ -425,6 +426,7 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
               hint: '원',
               controller: _priceController,
               keyboardType: TextInputType.number,
+              inputFormatters: const [ThousandsSeparatorInputFormatter()],
             ),
           ),
 

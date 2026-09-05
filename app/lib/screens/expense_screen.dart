@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../data/app_repositories.dart';
 import '../models/expense.dart';
+import '../utils/thousands_separator_input_formatter.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -425,7 +425,9 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     _category = expense?.category ?? ExpenseCategory.other;
     _titleController = TextEditingController(text: expense?.title ?? '');
     _amountController = TextEditingController(
-      text: expense == null ? '' : '${expense.amount}',
+      text: expense == null
+          ? ''
+          : formatWithThousandsSeparators(expense.amount),
     );
     _memoController = TextEditingController(text: expense?.memo ?? '');
   }
@@ -460,7 +462,9 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
   Future<void> _save() async {
     final title = _titleController.text.trim();
-    final amount = int.tryParse(_amountController.text);
+    final amount = int.tryParse(
+      removeThousandsSeparators(_amountController.text),
+    );
     if (title.isEmpty) {
       _message('지출명을 입력해 주세요.');
       return;
@@ -547,7 +551,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
               TextField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: const [ThousandsSeparatorInputFormatter()],
                 decoration: InputDecoration(
                   hintText: '예: 18000',
                   suffixText: '원',
