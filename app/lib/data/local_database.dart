@@ -23,7 +23,12 @@ class LocalDatabase
 
   static Future<LocalDatabase> open() async {
     final path = p.join(await getDatabasesPath(), 'mintonary.db');
-    final db = await openDatabase(path, version: 1, onCreate: _create);
+    final db = await openDatabase(
+      path,
+      version: 1,
+      onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+      onCreate: _create,
+    );
     return LocalDatabase._(db);
   }
 
@@ -455,6 +460,65 @@ class LocalDatabase
           'amount': price,
         });
       }
+    });
+  }
+
+  @override
+  Future<void> updateEquipment(
+    int equipmentId, {
+    required int modelId,
+    DateTime? purchaseDate,
+    int? price,
+    String? memo,
+  }) async {
+    final rows = await _db.query(
+      'equipment',
+      columns: ['type'],
+      where: 'id = ?',
+      whereArgs: [equipmentId],
+    );
+    if (rows.isEmpty) throw Exception('장비를 찾을 수 없습니다.');
+    final modelTable = rows.first['type'] == 'RACKET'
+        ? 'racket_model'
+        : 'shoe_model';
+    final modelCount = Sqflite.firstIntValue(
+      await _db.rawQuery('SELECT COUNT(*) FROM $modelTable WHERE id = ?', [
+        modelId,
+      ]),
+    );
+    if (modelCount != 1) throw Exception('선택한 장비 모델을 찾을 수 없습니다.');
+    await _db.update(
+      'equipment',
+      {
+        'model_id': modelId,
+        'purchase_date': purchaseDate == null ? null : _iso(purchaseDate),
+        'price': price,
+        'memo': memo?.trim().isEmpty == true ? null : memo?.trim(),
+      },
+      where: 'id = ?',
+      whereArgs: [equipmentId],
+    );
+  }
+
+  @override
+  Future<void> deleteEquipment(int equipmentId) async {
+    await _db.transaction((txn) async {
+      await txn.delete(
+        'string_history',
+        where: 'equipment_id = ?',
+        whereArgs: [equipmentId],
+      );
+      await txn.delete(
+        'grip_history',
+        where: 'equipment_id = ?',
+        whereArgs: [equipmentId],
+      );
+      final deleted = await txn.delete(
+        'equipment',
+        where: 'id = ?',
+        whereArgs: [equipmentId],
+      );
+      if (deleted == 0) throw Exception('장비를 찾을 수 없습니다.');
     });
   }
 

@@ -81,6 +81,14 @@ abstract interface class EquipmentRepository {
     String? gripType,
     DateTime? wrappedAt,
   });
+  Future<void> updateEquipment(
+    int equipmentId, {
+    required int modelId,
+    DateTime? purchaseDate,
+    int? price,
+    String? memo,
+  });
+  Future<void> deleteEquipment(int equipmentId);
   Future<void> addStringChange(
     int equipmentId, {
     required String name,

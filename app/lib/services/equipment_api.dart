@@ -115,6 +115,16 @@ class EquipmentApi {
     }
   }
 
+  static Future<void> delete(int equipmentId) async {
+    final response = await http.delete(
+      Uri.parse('${ApiClient.baseUrl}/api/equipments/$equipmentId'),
+      headers: ApiClient.authJsonHeaders,
+    );
+    if (response.statusCode != 204) {
+      _throwError(response, '장비 삭제에 실패했습니다.');
+    }
+  }
+
   static Future<void> addStringChange(
     int equipmentId, {
     required String name,

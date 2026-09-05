@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/app_repositories.dart';
+import '../data/repositories.dart';
 import '../models/equipment.dart';
 import '../widgets/app_text_field.dart';
+import 'equipment_edit_screen.dart';
 
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
@@ -10,6 +12,8 @@ const _lightNavy = Color(0xFFE9EEF8);
 const _red = Color(0xFFD9433C);
 const _lightRed = Color(0xFFFCE8E7);
 const _bg = Color(0xFFF1F3F8);
+
+enum _EquipmentAction { edit, delete }
 
 /// 그립 종류 — 서버 GripType과 같은 값
 const _gripTypes = {'OVER': '오버그립', 'TOWEL': '타월그립', 'CUSHION': '쿠션그립'};
@@ -83,6 +87,56 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
     );
+  }
+
+  Future<void> _editEquipment() async {
+    final detail = _detail;
+    if (detail == null) return;
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => EquipmentEditScreen(detail: detail)),
+    );
+    if (saved == true) await _load();
+  }
+
+  Future<void> _deleteEquipment() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('라켓 삭제'),
+        content: const Text(
+          '라켓과 스트링·그립 교체 이력이 모두 삭제됩니다.\n'
+          '이미 추가된 지출 내역은 유지됩니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: _red),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await AppRepositories.equipment.deleteEquipment(widget.equipmentId);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) _showError(e);
+    }
+  }
+
+  void _handleAction(_EquipmentAction action) {
+    switch (action) {
+      case _EquipmentAction.edit:
+        _editEquipment();
+      case _EquipmentAction.delete:
+        _deleteEquipment();
+    }
   }
 
   /// 시각을 뗀 오늘 날짜 — 날짜 차이 계산용
@@ -271,9 +325,28 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
         title: const Text('라켓 상세'),
         backgroundColor: Colors.transparent,
         actions: [
-          IconButton(
-            onPressed: () {}, // TODO: 수정 / 방출 메뉴
-            icon: const Icon(Icons.more_horiz),
+          PopupMenuButton<_EquipmentAction>(
+            enabled: _detail != null,
+            onSelected: _handleAction,
+            itemBuilder: (context) => [
+              if (storageMode == StorageMode.local)
+                const PopupMenuItem(
+                  value: _EquipmentAction.edit,
+                  child: ListTile(
+                    leading: Icon(Icons.edit_outlined),
+                    title: Text('수정'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              const PopupMenuItem(
+                value: _EquipmentAction.delete,
+                child: ListTile(
+                  leading: Icon(Icons.delete_outline, color: _red),
+                  title: Text('삭제', style: TextStyle(color: _red)),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),

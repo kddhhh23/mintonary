@@ -108,6 +108,17 @@ class RemoteEquipmentRepository implements EquipmentRepository {
     wrappedAt: wrappedAt,
   );
   @override
+  Future<void> updateEquipment(
+    int equipmentId, {
+    required int modelId,
+    DateTime? purchaseDate,
+    int? price,
+    String? memo,
+  }) => throw UnsupportedError('서버 모드에서는 장비 수정을 지원하지 않습니다.');
+  @override
+  Future<void> deleteEquipment(int equipmentId) =>
+      EquipmentApi.delete(equipmentId);
+  @override
   Future<void> addStringChange(
     int equipmentId, {
     required String name,
