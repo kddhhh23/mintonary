@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../data/app_repositories.dart';
+import '../data/repositories.dart';
 import '../models/equipment.dart';
 import '../models/expense.dart';
 import '../models/workout_record.dart';
 import '../services/session.dart';
 import 'equipment_screen.dart';
 import 'expense_screen.dart';
+import 'profile_setup_screen.dart';
 import 'racket_detail_screen.dart';
 import 'record_screen.dart';
 import 'shoe_detail_screen.dart';
@@ -104,6 +106,18 @@ class _HomeBodyState extends State<_HomeBody> {
 
   void _reload() => setState(() => _future = _load());
 
+  Future<void> _editProfile() async {
+    final profile = await AppRepositories.profile.load();
+    if (!mounted || profile == null) return;
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileSetupScreen(initialProfile: profile),
+      ),
+    );
+    if (saved == true && mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -111,7 +125,12 @@ class _HomeBodyState extends State<_HomeBody> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Header(nickname: Session.nickname ?? '회원'),
+          _Header(
+            nickname: Session.nickname ?? '회원',
+            onProfileTap: storageMode == StorageMode.local
+                ? _editProfile
+                : null,
+          ),
           const SizedBox(height: 24),
           FutureBuilder<_HomeData>(
             future: _future,
@@ -273,9 +292,10 @@ class _HomeContent extends StatelessWidget {
 
 /// 상단: 날짜 + 인사말 + 프로필
 class _Header extends StatelessWidget {
-  const _Header({required this.nickname});
+  const _Header({required this.nickname, this.onProfileTap});
 
   final String nickname;
+  final VoidCallback? onProfileTap;
 
   static const _weekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -302,15 +322,23 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: _navy,
-          child: Text(
-            nickname.isEmpty ? '회' : nickname.characters.first,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+        Semantics(
+          button: onProfileTap != null,
+          label: '내 정보 수정',
+          child: InkWell(
+            onTap: onProfileTap,
+            customBorder: const CircleBorder(),
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: _navy,
+              child: Text(
+                nickname.isEmpty ? '회' : nickname.characters.first,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
         ),

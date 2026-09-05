@@ -10,7 +10,9 @@ const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
 
 class ProfileSetupScreen extends StatefulWidget {
-  const ProfileSetupScreen({super.key});
+  const ProfileSetupScreen({super.key, this.initialProfile});
+
+  final LocalProfile? initialProfile;
 
   @override
   State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
@@ -26,6 +28,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   bool _saving = false;
 
   static const _classes = ['S', 'A', 'B', 'C', 'D', 'E', 'F'];
+
+  bool get _isEditing => widget.initialProfile != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final profile = widget.initialProfile;
+    if (profile == null) return;
+    _nickname.text = profile.nickname;
+    _email.text = profile.email ?? '';
+    _birthDate = profile.birthDate;
+    _gender = profile.gender;
+    _localClass = profile.localClass;
+    _nationalClass = profile.nationalClass;
+  }
 
   @override
   void dispose() {
@@ -54,30 +71,42 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
     setState(() => _saving = true);
-    await AppRepositories.profile.save(
-      LocalProfile(
-        nickname: nickname,
-        email: _email.text.trim().isEmpty ? null : _email.text.trim(),
-        birthDate: _birthDate,
-        gender: _gender,
-        localClass: _localClass,
-        nationalClass: _nationalClass,
-      ),
-    );
-    Session.nickname = nickname;
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-      (_) => false,
-    );
+    try {
+      await AppRepositories.profile.save(
+        LocalProfile(
+          nickname: nickname,
+          email: _email.text.trim().isEmpty ? null : _email.text.trim(),
+          birthDate: _birthDate,
+          gender: _gender,
+          localClass: _localClass,
+          nationalClass: _nationalClass,
+        ),
+      );
+      Session.nickname = nickname;
+      if (!mounted) return;
+      if (_isEditing) {
+        Navigator.pop(context, true);
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (_) => false,
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('정보를 저장하지 못했어요. 다시 시도해 주세요.')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('내 정보 설정'),
+        title: Text(_isEditing ? '내 정보 수정' : '내 정보 설정'),
         backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
@@ -86,9 +115,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                '민터너리를 시작하기 전에\n간단한 정보를 알려주세요.',
-                style: TextStyle(
+              Text(
+                _isEditing
+                    ? '내 정보를 확인하고\n필요한 내용을 수정해 주세요.'
+                    : '민터너리를 시작하기 전에\n간단한 정보를 알려주세요.',
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                   height: 1.35,
@@ -154,8 +185,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        '시작하기',
+                    : Text(
+                        _isEditing ? '저장하기' : '시작하기',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
