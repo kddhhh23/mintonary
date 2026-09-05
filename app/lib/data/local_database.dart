@@ -25,11 +25,14 @@ class LocalDatabase
     final path = p.join(await getDatabasesPath(), 'mintonary.db');
     final db = await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _create,
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 4) await _seedModels(db);
+        if (oldVersion < 5) {
+          await _seedModels(db);
+          await _normalizeModelBrands(db);
+        }
       },
     );
     return LocalDatabase._(db);
@@ -78,6 +81,34 @@ class LocalDatabase
     );
     await db.execute('CREATE INDEX idx_expense_date ON expense(expense_date)');
     await _seedModels(db);
+    await _normalizeModelBrands(db);
+  }
+
+  static Future<void> _normalizeModelBrands(Database db) async {
+    const brands = {
+      'YONEX': '요넥스',
+      'VICTOR': '빅터',
+      'LI-NING': '리닝',
+      'LI NING': '리닝',
+      'LINING': '리닝',
+      'APACS': '아펙스',
+      'MIZUNO': '미즈노',
+      'TECHNIST': '테크니스트',
+    };
+    for (final entry in brands.entries) {
+      await db.update(
+        'racket_model',
+        {'brand': entry.value},
+        where: 'UPPER(brand) = ?',
+        whereArgs: [entry.key],
+      );
+      await db.update(
+        'shoe_model',
+        {'brand': entry.value},
+        where: 'UPPER(brand) = ?',
+        whereArgs: [entry.key],
+      );
+    }
   }
 
   static Future<void> _seedModels(Database db) async {

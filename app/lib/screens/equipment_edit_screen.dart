@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../data/app_repositories.dart';
 import '../models/equipment.dart';
@@ -7,6 +8,7 @@ import '../widgets/app_text_field.dart';
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
 const _hint = Color(0xFFA8B0BF);
+const _directBrandOption = '__DIRECT_INPUT__';
 
 typedef _ModelOption = ({int id, String brand, String name});
 
@@ -24,6 +26,7 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
   String? _brand;
   String? _model;
   bool _directInput = false;
+  bool _directModelInput = false;
   final _customBrandController = TextEditingController();
   final _customModelController = TextEditingController();
   DateTime? _purchaseDate;
@@ -126,7 +129,12 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
       _showMessage('브랜드와 모델명을 입력해 주세요.');
       return;
     }
-    if (!_directInput && (brand == null || model == null)) {
+    if (_directModelInput && customModel.isEmpty) {
+      _showMessage('모델명을 입력해 주세요.');
+      return;
+    }
+    if (!_directInput &&
+        (brand == null || (!_directModelInput && model == null))) {
       _showMessage('브랜드와 모델을 선택해 주세요.');
       return;
     }
@@ -144,10 +152,10 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
     setState(() => _submitting = true);
     try {
       final int modelId;
-      if (_directInput) {
+      if (_directInput || _directModelInput) {
         modelId = await AppRepositories.equipment.addCustomModel(
           type: widget.detail.type,
-          brand: customBrand,
+          brand: _directInput ? customBrand : brand!,
           name: customModel,
         );
       } else {
@@ -207,29 +215,25 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: _InputModeButton(
-                  label: '목록에서 선택',
-                  selected: !_directInput,
-                  onTap: () => setState(() => _directInput = false),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _InputModeButton(
-                  label: '직접 입력',
-                  selected: _directInput,
-                  onTap: () => setState(() => _directInput = true),
-                ),
-              ),
-            ],
+          _Labeled(
+            label: '브랜드',
+            child: _Dropdown(
+              value: _directInput ? _directBrandOption : _brand,
+              items: [_directBrandOption, ...models.keys],
+              itemLabel: (value) =>
+                  value == _directBrandOption ? '직접 입력' : value,
+              onChanged: (value) => setState(() {
+                _directInput = value == _directBrandOption;
+                _brand = _directInput ? null : value;
+                _model = null;
+                _directModelInput = false;
+              }),
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           if (_directInput) ...[
             _Labeled(
-              label: '브랜드',
+              label: '브랜드명',
               child: AppTextField(
                 hint: '예: 미즈노',
                 controller: _customBrandController,
@@ -247,27 +251,34 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
             ),
           ] else ...[
             _Labeled(
-              label: '브랜드',
+              label: _isRacket ? '라켓명' : '신발명',
               child: _Dropdown(
-                value: _brand,
-                items: models.keys.toList(),
+                value: _directModelInput ? _directBrandOption : _model,
+                items: _brand == null
+                    ? const []
+                    : [
+                        _directBrandOption,
+                        ...models[_brand]!.map((item) => item.name),
+                      ],
+                itemLabel: (value) =>
+                    value == _directBrandOption ? '직접 입력' : value,
                 onChanged: (value) => setState(() {
-                  _brand = value;
-                  _model = null;
+                  _directModelInput = value == _directBrandOption;
+                  _model = _directModelInput ? null : value;
                 }),
               ),
             ),
-            const SizedBox(height: 16),
-            _Labeled(
-              label: _isRacket ? '라켓명' : '신발명',
-              child: _Dropdown(
-                value: _model,
-                items: _brand == null
-                    ? const []
-                    : models[_brand]!.map((item) => item.name).toList(),
-                onChanged: (value) => setState(() => _model = value),
+            if (_directModelInput) ...[
+              const SizedBox(height: 16),
+              _Labeled(
+                label: '모델명 직접 입력',
+                child: AppTextField(
+                  hint: '모델명 입력',
+                  controller: _customModelController,
+                  maxLength: 100,
+                ),
               ),
-            ),
+            ],
           ],
           const SizedBox(height: 16),
           _Labeled(
@@ -380,54 +391,23 @@ class _Labeled extends StatelessWidget {
   );
 }
 
-class _InputModeButton extends StatelessWidget {
-  const _InputModeButton({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(16),
-    child: Container(
-      height: 52,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: selected ? _navy : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-          color: selected ? Colors.white : _hint,
-        ),
-      ),
-    ),
-  );
-}
-
 class _Dropdown extends StatelessWidget {
   const _Dropdown({
     required this.value,
     required this.items,
     required this.onChanged,
+    this.itemLabel,
   });
 
   final String? value;
   final List<String> items;
   final ValueChanged<String?> onChanged;
+  final String Function(String)? itemLabel;
 
   @override
-  Widget build(BuildContext context) => DropdownButtonFormField<String>(
+  Widget build(BuildContext context) => DropdownButtonFormField2<String>(
     key: ValueKey(value),
-    initialValue: value,
+    valueListenable: ValueNotifier(value),
     isExpanded: true,
     hint: const Text('선택', style: TextStyle(color: _hint)),
     decoration: InputDecoration(
@@ -438,9 +418,25 @@ class _Dropdown extends StatelessWidget {
         borderSide: BorderSide.none,
       ),
     ),
+    buttonStyleData: const FormFieldButtonStyleData(padding: EdgeInsets.zero),
+    menuItemStyleData: const MenuItemStyleData(
+      useDecorationHorizontalPadding: true,
+    ),
     items: items
-        .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+        .map(
+          (item) => DropdownItem(
+            value: item,
+            child: Text(itemLabel == null ? item : itemLabel!(item)),
+          ),
+        )
         .toList(),
+    dropdownStyleData: DropdownStyleData(
+      maxHeight: 360,
+      anchoredMinHeight: 240,
+      offset: Offset.zero,
+      isOverButton: false,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+    ),
     onChanged: onChanged,
   );
 }
