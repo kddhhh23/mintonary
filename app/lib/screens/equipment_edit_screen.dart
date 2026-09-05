@@ -23,6 +23,9 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
   List<_ModelOption>? _options;
   String? _brand;
   String? _model;
+  bool _directInput = false;
+  final _customBrandController = TextEditingController();
+  final _customModelController = TextEditingController();
   DateTime? _purchaseDate;
   final _priceController = TextEditingController();
   final _memoController = TextEditingController();
@@ -90,6 +93,8 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
 
   @override
   void dispose() {
+    _customBrandController.dispose();
+    _customModelController.dispose();
     _priceController.dispose();
     _memoController.dispose();
     super.dispose();
@@ -115,13 +120,16 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
   Future<void> _submit() async {
     final brand = _brand;
     final model = _model;
-    if (brand == null || model == null) {
+    final customBrand = _customBrandController.text.trim();
+    final customModel = _customModelController.text.trim();
+    if (_directInput && (customBrand.isEmpty || customModel.isEmpty)) {
+      _showMessage('브랜드와 모델명을 입력해 주세요.');
+      return;
+    }
+    if (!_directInput && (brand == null || model == null)) {
       _showMessage('브랜드와 모델을 선택해 주세요.');
       return;
     }
-    final modelId = _byBrand[brand]!
-        .firstWhere((option) => option.name == model)
-        .id;
     final priceText = _priceController.text.trim();
     final price = priceText.isEmpty ? null : int.tryParse(priceText);
     if (priceText.isNotEmpty && (price == null || price <= 0)) {
@@ -135,6 +143,18 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
 
     setState(() => _submitting = true);
     try {
+      final int modelId;
+      if (_directInput) {
+        modelId = await AppRepositories.equipment.addCustomModel(
+          type: widget.detail.type,
+          brand: customBrand,
+          name: customModel,
+        );
+      } else {
+        modelId = _byBrand[brand]!
+            .firstWhere((option) => option.name == model)
+            .id;
+      }
       await AppRepositories.equipment.updateEquipment(
         widget.detail.id,
         modelId: modelId,
@@ -187,28 +207,68 @@ class _EquipmentEditScreenState extends State<EquipmentEditScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Labeled(
-            label: '브랜드',
-            child: _Dropdown(
-              value: _brand,
-              items: models.keys.toList(),
-              onChanged: (value) => setState(() {
-                _brand = value;
-                _model = null;
-              }),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: _InputModeButton(
+                  label: '목록에서 선택',
+                  selected: !_directInput,
+                  onTap: () => setState(() => _directInput = false),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _InputModeButton(
+                  label: '직접 입력',
+                  selected: _directInput,
+                  onTap: () => setState(() => _directInput = true),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          _Labeled(
-            label: _isRacket ? '라켓명' : '신발명',
-            child: _Dropdown(
-              value: _model,
-              items: _brand == null
-                  ? const []
-                  : models[_brand]!.map((item) => item.name).toList(),
-              onChanged: (value) => setState(() => _model = value),
+          const SizedBox(height: 20),
+          if (_directInput) ...[
+            _Labeled(
+              label: '브랜드',
+              child: AppTextField(
+                hint: '예: 미즈노',
+                controller: _customBrandController,
+                maxLength: 50,
+              ),
             ),
-          ),
+            const SizedBox(height: 16),
+            _Labeled(
+              label: _isRacket ? '라켓명' : '신발명',
+              child: AppTextField(
+                hint: '모델명 입력',
+                controller: _customModelController,
+                maxLength: 100,
+              ),
+            ),
+          ] else ...[
+            _Labeled(
+              label: '브랜드',
+              child: _Dropdown(
+                value: _brand,
+                items: models.keys.toList(),
+                onChanged: (value) => setState(() {
+                  _brand = value;
+                  _model = null;
+                }),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _Labeled(
+              label: _isRacket ? '라켓명' : '신발명',
+              child: _Dropdown(
+                value: _model,
+                items: _brand == null
+                    ? const []
+                    : models[_brand]!.map((item) => item.name).toList(),
+                onChanged: (value) => setState(() => _model = value),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           _Labeled(
             label: '구매일',
@@ -317,6 +377,39 @@ class _Labeled extends StatelessWidget {
       ),
       child,
     ],
+  );
+}
+
+class _InputModeButton extends StatelessWidget {
+  const _InputModeButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(16),
+    child: Container(
+      height: 52,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: selected ? _navy : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+          color: selected ? Colors.white : _hint,
+        ),
+      ),
+    ),
   );
 }
 

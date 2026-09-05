@@ -34,6 +34,9 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
   // 공통
   String? _brand;
   String? _model;
+  bool _directInput = false;
+  final _customBrandController = TextEditingController();
+  final _customModelController = TextEditingController();
   DateTime? _purchaseDate;
   final _priceController = TextEditingController();
 
@@ -102,6 +105,8 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
 
   @override
   void dispose() {
+    _customBrandController.dispose();
+    _customModelController.dispose();
     _priceController.dispose();
     _stringController.dispose();
     _tensionController.dispose();
@@ -192,13 +197,19 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
   Future<void> _submit() async {
     final brand = _brand;
     final model = _model;
-    if (brand == null || model == null) {
+    final customBrand = _customBrandController.text.trim();
+    final customModel = _customModelController.text.trim();
+    if (_directInput && (customBrand.isEmpty || customModel.isEmpty)) {
+      _showMessage('브랜드와 모델명을 입력해 주세요.');
+      return;
+    }
+    if (!_directInput && (brand == null || model == null)) {
       _showMessage('브랜드와 모델을 선택해 주세요.');
       return;
     }
-    final modelId = _byBrand[brand]!
-        .firstWhere((option) => option.name == model)
-        .id;
+    final equipmentName = _directInput
+        ? '$customBrand $customModel'
+        : '$brand $model';
 
     final priceText = _priceController.text.trim();
     final price = priceText.isEmpty ? null : int.tryParse(priceText);
@@ -214,7 +225,7 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
     var addToExpenses = false;
     if (price != null) {
       addToExpenses = await _askAddToExpenses(
-        equipmentName: '$brand $model',
+        equipmentName: equipmentName,
         price: price,
       );
       if (!mounted) return;
@@ -222,6 +233,18 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
 
     setState(() => _submitting = true);
     try {
+      final int modelId;
+      if (_directInput) {
+        modelId = await AppRepositories.equipment.addCustomModel(
+          type: _type,
+          brand: customBrand,
+          name: customModel,
+        );
+      } else {
+        modelId = _byBrand[brand]!
+            .firstWhere((option) => option.name == model)
+            .id;
+      }
       await AppRepositories.equipment.register(
         type: _type,
         modelId: modelId,
@@ -310,29 +333,70 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
           const SizedBox(height: 32),
           const _SectionLabel('기본 정보'),
 
+          Row(
+            children: [
+              Expanded(
+                child: _ChoiceButton(
+                  label: '목록에서 선택',
+                  selected: !_directInput,
+                  onTap: () => setState(() => _directInput = false),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _ChoiceButton(
+                  label: '직접 입력',
+                  selected: _directInput,
+                  onTap: () => setState(() => _directInput = true),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
           // 브랜드 → 모델 순서로 고른다
-          _Labeled(
-            label: '브랜드',
-            child: _Dropdown(
-              value: _brand,
-              items: models.keys.toList(),
-              onChanged: (value) => setState(() {
-                _brand = value;
-                _model = null; // 브랜드 바뀌면 모델 다시 선택
-              }),
+          if (_directInput) ...[
+            _Labeled(
+              label: '브랜드',
+              child: AppTextField(
+                hint: '예: 미즈노',
+                controller: _customBrandController,
+                maxLength: 50,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _Labeled(
-            label: _isRacket ? '라켓명' : '신발명',
-            child: _Dropdown(
-              value: _model,
-              items: _brand == null
-                  ? const []
-                  : models[_brand]!.map((option) => option.name).toList(),
-              onChanged: (value) => setState(() => _model = value),
+            const SizedBox(height: 16),
+            _Labeled(
+              label: _isRacket ? '라켓명' : '신발명',
+              child: AppTextField(
+                hint: '모델명 입력',
+                controller: _customModelController,
+                maxLength: 100,
+              ),
             ),
-          ),
+          ] else ...[
+            _Labeled(
+              label: '브랜드',
+              child: _Dropdown(
+                value: _brand,
+                items: models.keys.toList(),
+                onChanged: (value) => setState(() {
+                  _brand = value;
+                  _model = null; // 브랜드 바뀌면 모델 다시 선택
+                }),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _Labeled(
+              label: _isRacket ? '라켓명' : '신발명',
+              child: _Dropdown(
+                value: _model,
+                items: _brand == null
+                    ? const []
+                    : models[_brand]!.map((option) => option.name).toList(),
+                onChanged: (value) => setState(() => _model = value),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           _Labeled(
             label: '구매일',

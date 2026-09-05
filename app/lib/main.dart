@@ -6,9 +6,11 @@ import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'services/session.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.initialize();
   await AppRepositories.initialize();
 
   Widget home;

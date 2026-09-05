@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/app_repositories.dart';
 import '../data/repositories.dart';
 import '../models/equipment.dart';
+import '../services/notification_service.dart';
 import '../widgets/app_text_field.dart';
 import 'equipment_edit_screen.dart';
 
@@ -44,6 +45,12 @@ class _GripChange {
   /// OVER, TOWEL, CUSHION
   final String type;
   final DateTime date;
+}
+
+class _AlarmDateSelection {
+  const _AlarmDateSelection(this.date);
+
+  final DateTime? date;
 }
 
 /// 라켓 상세 화면
@@ -123,6 +130,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     );
     if (confirmed != true) return;
     try {
+      await NotificationService.cancelStringAlarm(widget.equipmentId);
       await AppRepositories.equipment.deleteEquipment(widget.equipmentId);
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -168,19 +176,42 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
 
   /// 바텀시트로 다음 교체 알림 날짜를 고른다
   Future<void> _editStringAlarm() async {
-    final result = await showModalBottomSheet<DateTime>(
+    final racket = _detail?.racket;
+    if (racket == null) return;
+    final result = await showModalBottomSheet<_AlarmDateSelection>(
       context: context,
       backgroundColor: _bg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => _AlarmDateSheet(today: _today),
+      builder: (context) => _AlarmDateSheet(
+        today: _today,
+        hasAlarm: racket.stringAlarmDate != null,
+      ),
     );
     if (result == null) return;
     try {
+      if (result.date == null) {
+        await NotificationService.cancelStringAlarm(widget.equipmentId);
+      } else {
+        final allowed = await NotificationService.requestPermission();
+        if (!allowed) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('알림 권한을 허용해야 교체 알림을 받을 수 있어요.')),
+            );
+          }
+          return;
+        }
+        await NotificationService.scheduleStringAlarm(
+          equipmentId: widget.equipmentId,
+          racketName: '${racket.brand} ${racket.name}',
+          date: result.date!,
+        );
+      }
       await AppRepositories.equipment.setStringAlarm(
         widget.equipmentId,
-        result,
+        result.date,
       );
       await _load();
     } catch (e) {
@@ -805,19 +836,23 @@ class _StatusOption extends StatelessWidget {
 
 /// 다음 교체 알림 날짜 선택 바텀시트 — 고르면 날짜를 돌려준다
 class _AlarmDateSheet extends StatelessWidget {
-  const _AlarmDateSheet({required this.today});
+  const _AlarmDateSheet({required this.today, required this.hasAlarm});
 
   final DateTime today;
+  final bool hasAlarm;
 
   /// 달력에서 직접 고른다
   Future<void> _pickCustom(BuildContext context) async {
+    final tomorrow = today.add(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
-      initialDate: today,
-      firstDate: today,
+      initialDate: tomorrow,
+      firstDate: tomorrow,
       lastDate: DateTime(today.year + 2),
     );
-    if (picked != null && context.mounted) Navigator.pop(context, picked);
+    if (picked != null && context.mounted) {
+      Navigator.pop(context, _AlarmDateSelection(picked));
+    }
   }
 
   String _formatDate(DateTime d) =>
@@ -846,13 +881,22 @@ class _AlarmDateSheet extends StatelessWidget {
               _AlarmOption(
                 label: option.label,
                 sub: _formatDate(option.date),
-                onTap: () => Navigator.pop(context, option.date),
+                onTap: () =>
+                    Navigator.pop(context, _AlarmDateSelection(option.date)),
               ),
             _AlarmOption(
               label: '직접 선택',
               sub: '달력에서 고르기',
               onTap: () => _pickCustom(context),
             ),
+            if (hasAlarm)
+              _AlarmOption(
+                label: '알림 해제',
+                sub: '예약 취소',
+                destructive: true,
+                onTap: () =>
+                    Navigator.pop(context, const _AlarmDateSelection(null)),
+              ),
           ],
         ),
       ),
@@ -866,11 +910,13 @@ class _AlarmOption extends StatelessWidget {
     required this.label,
     required this.sub,
     required this.onTap,
+    this.destructive = false,
   });
 
   final String label;
   final String sub;
   final VoidCallback onTap;
+  final bool destructive;
 
   @override
   Widget build(BuildContext context) {
@@ -890,9 +936,10 @@ class _AlarmOption extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
+                  color: destructive ? _red : null,
                 ),
               ),
               const Spacer(),

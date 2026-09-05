@@ -76,6 +76,11 @@ abstract interface class ExpenseRepository {
 abstract interface class EquipmentRepository {
   Future<List<RacketModelOption>> fetchRacketModels();
   Future<List<ShoeModelOption>> fetchShoeModels();
+  Future<int> addCustomModel({
+    required String type,
+    required String brand,
+    required String name,
+  });
   Future<EquipmentList> fetchEquipments();
   Future<EquipmentDetail> fetchDetail(int id);
   Future<void> register({

@@ -89,6 +89,12 @@ class RemoteEquipmentRepository implements EquipmentRepository {
   Future<List<ShoeModelOption>> fetchShoeModels() =>
       EquipmentApi.fetchShoeModels();
   @override
+  Future<int> addCustomModel({
+    required String type,
+    required String brand,
+    required String name,
+  }) => throw UnsupportedError('서버 모드에서는 장비 모델 직접 입력을 지원하지 않습니다.');
+  @override
   Future<EquipmentList> fetchEquipments() => EquipmentApi.fetchEquipments();
   @override
   Future<EquipmentDetail> fetchDetail(int id) => EquipmentApi.fetchDetail(id);
