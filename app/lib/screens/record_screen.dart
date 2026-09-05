@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_repositories.dart';
 import '../models/workout_record.dart';
-import '../services/record_api.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -19,13 +19,13 @@ enum _RecordType {
   lesson('LESSON'),
   tournament('TOURNAMENT');
 
-  const _RecordType(this.serverValue);
+  const _RecordType(this.storageValue);
 
   /// 서버 WorkoutType과 같은 값
-  final String serverValue;
+  final String storageValue;
 
-  static _RecordType from(String serverValue) => values.firstWhere(
-    (type) => type.serverValue == serverValue,
+  static _RecordType from(String storageValue) => values.firstWhere(
+    (type) => type.storageValue == storageValue,
     orElse: () => general,
   );
 }
@@ -84,7 +84,10 @@ class _RecordScreenState extends State<RecordScreen> {
       _error = null;
     });
     try {
-      final records = await RecordApi.fetchMonth(_month.year, _month.month);
+      final records = await AppRepositories.records.fetchRecordMonth(
+        _month.year,
+        _month.month,
+      );
       if (!mounted) return;
       setState(() => _records = records);
     } catch (e) {
@@ -125,6 +128,22 @@ class _RecordScreenState extends State<RecordScreen> {
     await _loadMonth();
   }
 
+  Future<void> _openEdit(WorkoutRecord record) async {
+    final savedDate = await Navigator.push<DateTime>(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            _RecordFormScreen(initialDate: record.date, record: record),
+      ),
+    );
+    if (savedDate == null) return;
+    setState(() {
+      _month = DateTime(savedDate.year, savedDate.month);
+      _selected = DateTime(savedDate.year, savedDate.month, savedDate.day);
+    });
+    await _loadMonth();
+  }
+
   /// 확인 후 기록을 삭제한다
   Future<void> _deleteRecord(WorkoutRecord record) async {
     final confirmed = await showDialog<bool>(
@@ -149,7 +168,7 @@ class _RecordScreenState extends State<RecordScreen> {
     );
     if (confirmed != true) return;
     try {
-      await RecordApi.delete(record.id);
+      await AppRepositories.records.deleteRecord(record.id);
       await _loadMonth();
     } catch (e) {
       if (!mounted) return;
@@ -268,7 +287,11 @@ class _RecordScreenState extends State<RecordScreen> {
         ),
         const SizedBox(height: 12),
         for (final record in selectedRecords) ...[
-          _RecordCard(record: record, onDelete: () => _deleteRecord(record)),
+          _RecordCard(
+            record: record,
+            onEdit: () => _openEdit(record),
+            onDelete: () => _deleteRecord(record),
+          ),
           const SizedBox(height: 12),
         ],
         if (selectedRecords.isEmpty)
@@ -504,9 +527,14 @@ class _DayCell extends StatelessWidget {
 
 /// 기록 카드 — 종류 태그 + 제목 + 설명 + 메모 + 삭제 버튼
 class _RecordCard extends StatelessWidget {
-  const _RecordCard({required this.record, required this.onDelete});
+  const _RecordCard({
+    required this.record,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   final WorkoutRecord record;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   /// "김코치 · 관악체육관", "구민체육센터 · 준우승" 형식의 설명 줄
@@ -527,10 +555,7 @@ class _RecordCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: type.bg,
                   borderRadius: BorderRadius.circular(6),
@@ -544,7 +569,7 @@ class _RecordCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   record.title,
@@ -557,6 +582,22 @@ class _RecordCard extends StatelessWidget {
                 ),
               ),
               IconButton(
+                tooltip: '기록 수정',
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 18, color: _gray),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+              ),
+              const SizedBox(width: 6),
+              Container(
+                width: 1,
+                height: 18,
+                color: _gray.withValues(alpha: 0.28),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                tooltip: '기록 삭제',
                 onPressed: onDelete,
                 icon: const Icon(Icons.close, size: 18, color: _gray),
                 padding: EdgeInsets.zero,
@@ -583,10 +624,11 @@ class _RecordCard extends StatelessWidget {
 
 /// 기록 남기기 화면 — 저장하면 입력값(_RecordDraft)을 돌려준다
 class _RecordFormScreen extends StatefulWidget {
-  const _RecordFormScreen({required this.initialDate});
+  const _RecordFormScreen({required this.initialDate, this.record});
 
   /// 캘린더에서 선택돼 있던 날짜로 시작한다
   final DateTime initialDate;
+  final WorkoutRecord? record;
 
   @override
   State<_RecordFormScreen> createState() => _RecordFormScreenState();
@@ -601,17 +643,32 @@ class _RecordFormScreenState extends State<_RecordFormScreen> {
   final _memoController = TextEditingController();
 
   /// 캘린더에서 미래 날짜를 선택한 채 들어와도 오늘을 넘지 않게 잘라낸다
-  late DateTime _date = _clampToToday(widget.initialDate);
+  late DateTime _date;
 
   /// 저장 요청 중이면 true — 버튼을 잠가 중복 요청을 막는다
   bool _saving = false;
 
   bool get _isTournament => _type == _RecordType.tournament;
+  bool get _isEditing => widget.record != null;
 
   static DateTime _clampToToday(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     return date.isAfter(today) ? today : date;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final record = widget.record;
+    _date = _clampToToday(record?.date ?? widget.initialDate);
+    if (record == null) return;
+    _type = _RecordType.from(record.type);
+    _titleController.text = record.title;
+    _placeController.text = record.place ?? '';
+    _coachController.text = record.coach ?? '';
+    _resultController.text = record.result ?? '';
+    _memoController.text = record.memo ?? '';
   }
 
   @override
@@ -658,16 +715,35 @@ class _RecordFormScreenState extends State<_RecordFormScreen> {
     }
     setState(() => _saving = true);
     try {
-      await RecordApi.create(
-        date: _date,
-        type: _type.serverValue,
-        title: title,
-        place: _placeController.text.trim(),
-        // 코치는 레슨, 결과는 대회일 때만 의미가 있다
-        coach: _type == _RecordType.lesson ? _coachController.text.trim() : '',
-        result: _isTournament ? _resultController.text.trim() : '',
-        memo: _memoController.text.trim(),
-      );
+      final place = _placeController.text.trim();
+      final coach = _type == _RecordType.lesson
+          ? _coachController.text.trim()
+          : '';
+      final result = _isTournament ? _resultController.text.trim() : '';
+      final memo = _memoController.text.trim();
+      final record = widget.record;
+      if (record == null) {
+        await AppRepositories.records.createRecord(
+          date: _date,
+          type: _type.storageValue,
+          title: title,
+          place: place,
+          coach: coach,
+          result: result,
+          memo: memo,
+        );
+      } else {
+        await AppRepositories.records.updateRecord(
+          record.id,
+          date: _date,
+          type: _type.storageValue,
+          title: title,
+          place: place,
+          coach: coach,
+          result: result,
+          memo: memo,
+        );
+      }
       if (!mounted) return;
       Navigator.pop(context, _date);
     } catch (e) {
@@ -682,7 +758,7 @@ class _RecordFormScreenState extends State<_RecordFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('기록 남기기'),
+        title: Text(_isEditing ? '기록 수정' : '기록 남기기'),
         backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
@@ -821,8 +897,8 @@ class _RecordFormScreenState extends State<_RecordFormScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        '저장',
+                    : Text(
+                        _isEditing ? '수정 완료' : '저장',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
@@ -939,10 +1015,7 @@ class _DashedBorderPainter extends CustomPainter {
 
     final path = Path()
       ..addRRect(
-        RRect.fromRectAndRadius(
-          Offset.zero & size,
-          const Radius.circular(16),
-        ),
+        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(16)),
       );
 
     // 경로를 따라가며 일정 간격으로 짧은 선을 그린다
@@ -951,10 +1024,7 @@ class _DashedBorderPainter extends CustomPainter {
     for (final metric in path.computeMetrics()) {
       var distance = 0.0;
       while (distance < metric.length) {
-        canvas.drawPath(
-          metric.extractPath(distance, distance + dash),
-          paint,
-        );
+        canvas.drawPath(metric.extractPath(distance, distance + dash), paint);
         distance += dash + gap;
       }
     }

@@ -1,6 +1,6 @@
 # Mintonary
 
-Flutter 앱(`app/`) + Spring Boot 서버(`server/`) 모노레포.
+디바이스 로컬 저장소를 사용하는 Flutter 앱(`app/`) 프로젝트.
 
 ## 브랜치 규칙 (main - dev - feat)
 

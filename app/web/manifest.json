@@ -1,11 +1,11 @@
 {
-    "name": "app",
-    "short_name": "app",
+    "name": "민터너리",
+    "short_name": "민터너리",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "배드민턴 운동 기록 및 장비 관리 앱",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -1,0 +1,2381 @@
+{
+    "catalogVersion":  1,
+    "rackets":  [
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 99",
+                        "weight":  "U4",
+                        "balance":  "헤드 헤비",
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 88D",
+                        "weight":  "U4",
+                        "balance":  "헤드 헤비",
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 800",
+                        "weight":  "U4",
+                        "balance":  "헤드 라이트",
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "썬더",
+                        "name":  "썬더 TK-F",
+                        "weight":  "U3",
+                        "balance":  "헤드 헤비",
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "오라 스피드",
+                        "name":  "오라 스피드 100X",
+                        "weight":  "U4",
+                        "balance":  "이븐",
+                        "flex":  "미디엄"
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "에어로너트",
+                        "name":  "에어로너트 9000",
+                        "weight":  "U4",
+                        "balance":  "헤드 헤비",
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 80",
+                        "weight":  "U4",
+                        "balance":  "헤드 헤비",
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 100 ZZ",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 100 TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 100 GAME",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 99 PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 99 TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 99 PLAY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 88D PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 88D TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 88D GAME",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 88D PLAY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 88S PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 88S TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 88S GAME",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 88S PLAY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 77 PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 77 TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 77 PLAY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 NEXTAGE",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아크세이버",
+                        "name":  "아크세이버 11 PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아크세이버",
+                        "name":  "아크세이버 11 TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아크세이버",
+                        "name":  "아크세이버 11 PLAY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아크세이버",
+                        "name":  "아크세이버 7 PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아크세이버",
+                        "name":  "아크세이버 7 TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아크세이버",
+                        "name":  "아크세이버 7 PLAY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 1000 Z",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 1000 TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 1000 GAME",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 1000 PLAY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 800 PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 800 TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 800 PLAY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 700 PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 700 TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 700 GAME",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 700 PLAY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 NEXTAGE",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 류가 II PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 류가 II",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 류가 TD",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 류가 MUSE",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 F Enhanced",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 TTY ULTIMA",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 K FALCON Enhanced",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 K 220H II",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 K 30",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 FANTOME",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 100X ULTRA",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 100X",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 90K II",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 HS PLUS",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 90F",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 9000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 8000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 7000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 30H",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "드라이브X",
+                        "name":  "드라이브X 10 METALLIC",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "드라이브X",
+                        "name":  "드라이브X 9X",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "드라이브X",
+                        "name":  "드라이브X 12",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "드라이브X",
+                        "name":  "드라이브X 8S",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "드라이브X",
+                        "name":  "드라이브X 7X",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 100 II",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 100",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 90 MAX",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 90",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 80 LIGHT",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 70",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 40",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 30",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 20",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 10",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 CANNON PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 CANNON",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "액스포스",
+                        "name":  "액스포스 BIG BANG",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 900",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 900 SUN MAX",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 900 MOON MAX",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 800",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 700",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 500",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 200",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 100",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 73 LIGHT",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "블레이덱스",
+                        "name":  "블레이덱스 ASSASSIN",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "할버텍",
+                        "name":  "할버텍 9000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "할버텍",
+                        "name":  "할버텍 8000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "할버텍",
+                        "name":  "할버텍 7000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "할버텍",
+                        "name":  "할버텍 5000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "할버텍",
+                        "name":  "할버텍 3000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "할버텍",
+                        "name":  "할버텍 2000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "할버텍",
+                        "name":  "할버텍 1000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "윈드스톰",
+                        "name":  "윈드스톰 72",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "윈드스톰",
+                        "name":  "윈드스톰 72 POWER",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "윈드스톰",
+                        "name":  "윈드스톰 72 SPEED",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "윈드스톰",
+                        "name":  "윈드스톰 79-S",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "윈드스톰",
+                        "name":  "윈드스톰 79-H",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "POWERSTERN",
+                        "name":  "POWERSTERN 1000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "HIGHCONZ",
+                        "name":  "HIGHCONZ 555",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "HIGHCONZ",
+                        "name":  "HIGHCONZ 700",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "HYPERCORE",
+                        "name":  "HYPERCORE 8000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "ULTRIX",
+                        "name":  "ULTRIX 66",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "ULTRIX",
+                        "name":  "ULTRIX 88",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "SFRICTION",
+                        "name":  "SFRICTION 270",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "SFRICTION",
+                        "name":  "SFRICTION 7",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "CROSS COURT",
+                        "name":  "CROSS COURT PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "CROSS COURT",
+                        "name":  "CROSS COURT POWER",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "CROSS COURT",
+                        "name":  "CROSS COURT CONTROL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "CROSS COURT",
+                        "name":  "CROSS COURT SPEED",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "FANTALA",
+                        "name":  "FANTALA PRO 101",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "HARD HITTER",
+                        "name":  "HARD HITTER PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "VERSUS",
+                        "name":  "VERSUS PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "HONOR",
+                        "name":  "HONOR PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "HONOR",
+                        "name":  "HONOR PRO 6.4",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "IMPERIAL",
+                        "name":  "IMPERIAL PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "IMPERIAL",
+                        "name":  "IMPERIAL POWER",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "BLEND",
+                        "name":  "BLEND PRO POWERPLUS",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "ASSAILANT",
+                        "name":  "ASSAILANT PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "ASSAILANT",
+                        "name":  "ASSAILANT POWER",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "ASSAILANT",
+                        "name":  "ASSAILANT CONTROL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "ASSAILANT",
+                        "name":  "ASSAILANT SPEED",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "BLIZZARD",
+                        "name":  "BLIZZARD PRO ZZ",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "FEATHER WEIGHT",
+                        "name":  "FEATHER WEIGHT 55",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "FEATHER WEIGHT",
+                        "name":  "FEATHER WEIGHT 75",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "FEATHER WEIGHT",
+                        "name":  "FEATHER WEIGHT 100",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "FEATHER WEIGHT",
+                        "name":  "FEATHER WEIGHT 300",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "FEATHER WEIGHT",
+                        "name":  "FEATHER WEIGHT 500",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "WOVEN",
+                        "name":  "WOVEN CONTROL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "WOVEN",
+                        "name":  "WOVEN POWER",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "NANO FUSION",
+                        "name":  "NANO FUSION SPEED 722 DURA PRO",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "ASGARDIA",
+                        "name":  "ASGARDIA LITE",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "LETHAL",
+                        "name":  "LETHAL 28",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "ACCURATE",
+                        "name":  "ACCURATE 99",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "STARDOM",
+                        "name":  "STARDOM 80 II",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "VIRTUS",
+                        "name":  "VIRTUS 35",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "ASTRAL",
+                        "name":  "ASTRAL 9000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "LEGACY",
+                        "name":  "LEGACY 909",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "VALIANT",
+                        "name":  "VALIANT 8000",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "TRAINING",
+                        "name":  "TRAINING RACKET 120",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "TRAINING",
+                        "name":  "TRAINING RACKET 140",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "TRAINING",
+                        "name":  "TRAINING RACKET 160",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "ACROFORCE",
+                        "name":  "ACROFORCE 200",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "ACROFORCE",
+                        "name":  "ACROFORCE 100",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "ACROFORCE",
+                        "name":  "ACROFORCE 80",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "FORTIUS",
+                        "name":  "FORTIUS 20",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "FORTIUS",
+                        "name":  "FORTIUS 10 POWER",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "FORTIUS",
+                        "name":  "FORTIUS 10 QUICK",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "FORTIUS",
+                        "name":  "FORTIUS 60",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "FORTIUS",
+                        "name":  "FORTIUS 50 SPIRIT",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "FORTIUS",
+                        "name":  "FORTIUS 30",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "ALTIUS",
+                        "name":  "ALTIUS N FEEL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "ALTIUS",
+                        "name":  "ALTIUS 01 FEEL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "ALTIUS",
+                        "name":  "ALTIUS 02 SOLEAR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "ALTIUS",
+                        "name":  "ALTIUS 03 FEEL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "ALTIUS",
+                        "name":  "ALTIUS 06",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "미즈노",
+                        "series":  "ALTIUS",
+                        "name":  "ALTIUS 07 LIGHT",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "테크니스트",
+                        "series":  "SPEAR",
+                        "name":  "SPEAR 93",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "테크니스트",
+                        "series":  "SPEAR",
+                        "name":  "SPEAR 94",
+                        "weight":  "3U / 4U",
+                        "balance":  "EVEN",
+                        "flex":  "STIFF"
+                    },
+                    {
+                        "brand":  "테크니스트",
+                        "series":  "JH",
+                        "name":  "JH-VII",
+                        "weight":  "3U / 4U",
+                        "balance":  "HEAD LIGHT",
+                        "flex":  "FLEXIBLE"
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 99 GAME",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 100VA ZZ",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 100VA TOUR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 100VA GAME",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 01 ABILITY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 01 CLEAR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 01 FEEL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 3 DG HF",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 3 DG ST",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 7 DG",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아스트록스",
+                        "name":  "아스트록스 E13",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아크세이버",
+                        "name":  "아크세이버 2 ABILITY",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아크세이버",
+                        "name":  "아크세이버 2 CLEAR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아크세이버",
+                        "name":  "아크세이버 2 FEEL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 800 GAME",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 555",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 370 SPEED",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 270 SPEED",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "나노플레어",
+                        "name":  "나노플레어 170 LIGHT",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "듀오라",
+                        "name":  "듀오라 Z-STRIKE",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "듀오라",
+                        "name":  "듀오라 10",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "듀오라",
+                        "name":  "듀오라 7",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "머슬파워",
+                        "name":  "머슬파워 2",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아이소메트릭",
+                        "name":  "아이소메트릭 LITE 3",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아이소메트릭",
+                        "name":  "아이소메트릭 TR 0",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "요넥스",
+                        "series":  "아이소메트릭",
+                        "name":  "아이소메트릭 TR 1",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 류가 METALLIC",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 K 9900",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 K HMR",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "스러스터",
+                        "name":  "스러스터 K 1H",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 90S",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 70K",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "아우라스피드",
+                        "name":  "아우라스피드 70F",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "드라이브X",
+                        "name":  "드라이브X 11 METALLIC",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "드라이브X",
+                        "name":  "드라이브X 3H",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "에어로너트",
+                        "name":  "에어로너트 9000C",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "에어로너트",
+                        "name":  "에어로너트 9000I",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "에어로너트",
+                        "name":  "에어로너트 9000D",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "에어로너트",
+                        "name":  "에어로너트 7000C",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "에어로너트",
+                        "name":  "에어로너트 7000I",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "에어로너트",
+                        "name":  "에어로너트 7000B",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "텍토닉",
+                        "name":  "텍토닉 9",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "텍토닉",
+                        "name":  "텍토닉 7C",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "텍토닉",
+                        "name":  "텍토닉 7I",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "텍토닉",
+                        "name":  "텍토닉 7D",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "터보차징",
+                        "name":  "터보차징 75",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "터보차징",
+                        "name":  "터보차징 75C",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "터보차징",
+                        "name":  "터보차징 75I",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "리닝",
+                        "series":  "터보차징",
+                        "name":  "터보차징 75S",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "IMPERIAL",
+                        "name":  "IMPERIAL SPEED",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "IMPERIAL",
+                        "name":  "IMPERIAL CONTROL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "FANTALA",
+                        "name":  "FANTALA 6 CONTROL",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "FANTALA",
+                        "name":  "FANTALA 6 SPEED",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "COMMANDER",
+                        "name":  "COMMANDER 10",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "COMMANDER",
+                        "name":  "COMMANDER 80",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "DUAL",
+                        "name":  "DUAL 100",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "FINAPI",
+                        "name":  "FINAPI 232",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "아펙스",
+                        "series":  "LETHAL",
+                        "name":  "LETHAL LIGHT 1.10",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "테크니스트",
+                        "series":  "SPEAR",
+                        "name":  "SPEAR 92",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 12",
+                        "weight":  "3U / 4U",
+                        "balance":  "이븐",
+                        "flex":  "미디엄"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 12N",
+                        "weight":  "3U / 4U",
+                        "balance":  "이븐",
+                        "flex":  "미디엄"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 12 LIGHT",
+                        "weight":  "3U / 4U",
+                        "balance":  "이븐",
+                        "flex":  "미디엄"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 11",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 15",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 LYD",
+                        "weight":  null,
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 1700 NEW",
+                        "weight":  "3U",
+                        "balance":  "헤드 라이트",
+                        "flex":  "플렉시블"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 1600",
+                        "weight":  "3U / 4U",
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 160L",
+                        "weight":  "4U",
+                        "balance":  null,
+                        "flex":  "플렉시블"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 1200",
+                        "weight":  "3U / 4U",
+                        "balance":  null,
+                        "flex":  "플렉시블"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 1100",
+                        "weight":  "3U / 4U",
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 10",
+                        "weight":  "3U / 4U",
+                        "balance":  "이븐",
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 130",
+                        "weight":  "3U / 4U",
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 150",
+                        "weight":  "3U / 4U",
+                        "balance":  "이븐",
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 168",
+                        "weight":  "3U / 4U",
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 169",
+                        "weight":  "3U / 4U",
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 170",
+                        "weight":  "3U / 4U",
+                        "balance":  null,
+                        "flex":  null
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 1600 NEW",
+                        "weight":  "3U / 4U",
+                        "balance":  null,
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 LYD N",
+                        "weight":  "3U / 4U",
+                        "balance":  null,
+                        "flex":  "스티프"
+                    },
+                    {
+                        "brand":  "빅터",
+                        "series":  "브레이브소드",
+                        "name":  "브레이브소드 12 DLUX",
+                        "weight":  "4U",
+                        "balance":  null,
+                        "flex":  null
+                    }
+                ],
+    "shoes":  [
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 65Z",
+                      "width":  "2E"
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "에어러스 Z",
+                      "width":  "2E"
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "A970",
+                      "width":  "2.5E"
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "P9200",
+                      "width":  "2.5E"
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "레인저 TD",
+                      "width":  "2E"
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "사가 라이트",
+                      "width":  "2E"
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 65 Z4 MEN",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 65 Z4 WOMEN",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 65 Z4 WIDE",
+                      "width":  "4E"
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 이클립션 Z3 MEN",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 이클립션 Z3 WOMEN",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 이클립션 Z3 WIDE",
+                      "width":  "4E"
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 에어러스 Z2 MEN",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 에어러스 Z2 WOMEN",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 에어러스 Z2 WIDE",
+                      "width":  "4E"
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 컴포트 Z3",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 캐스케이드 드라이브 2",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 스트라이더 플로우",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 스트라이더 플로우 WIDE",
+                      "width":  "4E"
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "파워쿠션 인피니티 2",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "서브액시아 GT MEN",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "요넥스",
+                      "name":  "서브액시아 GT WOMEN",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "P9200 III",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "P9200 TTY",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "P9200 CC",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "P8500 II",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "A970 ACE",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "A970 NITROLITE",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "A830 IV",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "A362 II",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "S82 III",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "S81",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "S70",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "S35",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "VG2 ACE",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "C90N",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "P9310",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "빅터",
+                      "name":  "A396",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "YUN TING",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "SAGA II MAX",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "MIRAGE SE",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "BLAST JF LITE",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "BLADE PRO",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "BLADE LITE",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "BLADE II PRO",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "ALMIGHTY V",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "ALMIGHTY V KIDS",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "BLADE II JR.",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "SAGA JR.",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "LEI TING II PRO",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "RANGER TD",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "SAGA LITE",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "ROGUE",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "리닝",
+                      "name":  "ATTACK PRO",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "SP609-YS",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "CP502-XY",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "CUSHION CP082",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "PRO 752",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "PRO 772",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "SP608 F-II",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "PRO 728",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "PRO 729",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "AGGRESSIVE 517",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "CP 256",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "ADVANTAGE 622",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "아펙스",
+                      "name":  "PERFORMANCE 670",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE FANG PRO",
+                      "width":  "2E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE FANG ST",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE FANG 3 FIT",
+                      "width":  "2E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE FANG 3",
+                      "width":  "3E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE FANG EL 2",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE CLAW PRO 3",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE CLAW 4 FIT",
+                      "width":  "2E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE CLAW 4",
+                      "width":  "3E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE CLAW 4 WIDE",
+                      "width":  "4E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE CLAW NEO 3 FIT",
+                      "width":  "2E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE CLAW NEO 3",
+                      "width":  "3E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE CLAW EL 2 FIT",
+                      "width":  "2E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE CLAW EL 2",
+                      "width":  "3E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "WAVE CLAW EL 2 WIDE",
+                      "width":  "4E"
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "SKY BLASTER 4",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "미즈노",
+                      "name":  "MIZUNO ENERZY SLIDE",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "테크니스트",
+                      "name":  "TECHNIC-99BE+",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "테크니스트",
+                      "name":  "T950 BOOST PLUS",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "테크니스트",
+                      "name":  "TECHNIC-99GN+",
+                      "width":  null
+                  },
+                  {
+                      "brand":  "테크니스트",
+                      "name":  "TECHNIC-99BK+",
+                      "width":  null
+                  }
+              ]
+}

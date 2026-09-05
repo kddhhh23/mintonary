@@ -4,8 +4,7 @@
 
 ```
 mintonary/
-├── app/     # Flutter 앱
-└── server/  # Spring Boot 서버
+└── app/     # Flutter 앱
 ```
 
 ## 브랜치 규칙

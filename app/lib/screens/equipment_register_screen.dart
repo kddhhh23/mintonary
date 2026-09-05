@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
-import '../services/equipment_api.dart';
+import '../data/app_repositories.dart';
+import '../utils/thousands_separator_input_formatter.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
 const _hint = Color(0xFFA8B0BF);
+const _directBrandOption = '__DIRECT_INPUT__';
 
 /// 드롭다운에 쓰는 모델 한 건 (라켓/신발 공통)
 typedef _ModelOption = ({int id, String brand, String name});
@@ -34,6 +37,10 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
   // 공통
   String? _brand;
   String? _model;
+  bool _directInput = false;
+  bool _directModelInput = false;
+  final _customBrandController = TextEditingController();
+  final _customModelController = TextEditingController();
   DateTime? _purchaseDate;
   final _priceController = TextEditingController();
 
@@ -60,8 +67,8 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
     setState(() => _loadError = null);
     try {
       final results = await Future.wait([
-        EquipmentApi.fetchRacketModels(),
-        EquipmentApi.fetchShoeModels(),
+        AppRepositories.equipment.fetchRacketModels(),
+        AppRepositories.equipment.fetchShoeModels(),
       ]);
       if (!mounted) return;
       setState(() {
@@ -102,6 +109,8 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
 
   @override
   void dispose() {
+    _customBrandController.dispose();
+    _customModelController.dispose();
     _priceController.dispose();
     _stringController.dispose();
     _tensionController.dispose();
@@ -115,6 +124,8 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
       _type = type;
       _brand = null;
       _model = null;
+      _directInput = false;
+      _directModelInput = false;
     });
   }
 
@@ -192,15 +203,26 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
   Future<void> _submit() async {
     final brand = _brand;
     final model = _model;
-    if (brand == null || model == null) {
+    final customBrand = _customBrandController.text.trim();
+    final customModel = _customModelController.text.trim();
+    if (_directInput && (customBrand.isEmpty || customModel.isEmpty)) {
+      _showMessage('브랜드와 모델명을 입력해 주세요.');
+      return;
+    }
+    if (_directModelInput && customModel.isEmpty) {
+      _showMessage('모델명을 입력해 주세요.');
+      return;
+    }
+    if (!_directInput &&
+        (brand == null || (!_directModelInput && model == null))) {
       _showMessage('브랜드와 모델을 선택해 주세요.');
       return;
     }
-    final modelId = _byBrand[brand]!
-        .firstWhere((option) => option.name == model)
-        .id;
+    final equipmentName = _directInput
+        ? '$customBrand $customModel'
+        : '$brand ${_directModelInput ? customModel : model}';
 
-    final priceText = _priceController.text.trim();
+    final priceText = removeThousandsSeparators(_priceController.text.trim());
     final price = priceText.isEmpty ? null : int.tryParse(priceText);
     if (priceText.isNotEmpty && (price == null || price <= 0)) {
       _showMessage('가격은 0원보다 큰 숫자로 입력해 주세요.');
@@ -214,7 +236,7 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
     var addToExpenses = false;
     if (price != null) {
       addToExpenses = await _askAddToExpenses(
-        equipmentName: '$brand $model',
+        equipmentName: equipmentName,
         price: price,
       );
       if (!mounted) return;
@@ -222,7 +244,19 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
 
     setState(() => _submitting = true);
     try {
-      await EquipmentApi.register(
+      final int modelId;
+      if (_directInput || _directModelInput) {
+        modelId = await AppRepositories.equipment.addCustomModel(
+          type: _type,
+          brand: _directInput ? customBrand : brand!,
+          name: customModel,
+        );
+      } else {
+        modelId = _byBrand[brand]!
+            .firstWhere((option) => option.name == model)
+            .id;
+      }
+      await AppRepositories.equipment.register(
         type: _type,
         modelId: modelId,
         purchaseDate: _purchaseDate,
@@ -310,29 +344,72 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
           const SizedBox(height: 32),
           const _SectionLabel('기본 정보'),
 
-          // 브랜드 → 모델 순서로 고른다
           _Labeled(
             label: '브랜드',
             child: _Dropdown(
-              value: _brand,
-              items: models.keys.toList(),
+              value: _directInput ? _directBrandOption : _brand,
+              items: [_directBrandOption, ...models.keys],
+              itemLabel: (value) =>
+                  value == _directBrandOption ? '직접 입력' : value,
               onChanged: (value) => setState(() {
-                _brand = value;
-                _model = null; // 브랜드 바뀌면 모델 다시 선택
+                _directInput = value == _directBrandOption;
+                _brand = _directInput ? null : value;
+                _model = null;
+                _directModelInput = false;
               }),
             ),
           ),
           const SizedBox(height: 16),
-          _Labeled(
-            label: _isRacket ? '라켓명' : '신발명',
-            child: _Dropdown(
-              value: _model,
-              items: _brand == null
-                  ? const []
-                  : models[_brand]!.map((option) => option.name).toList(),
-              onChanged: (value) => setState(() => _model = value),
+
+          if (_directInput) ...[
+            _Labeled(
+              label: '브랜드명',
+              child: AppTextField(
+                hint: '예: 미즈노',
+                controller: _customBrandController,
+                maxLength: 50,
+              ),
             ),
-          ),
+            const SizedBox(height: 16),
+            _Labeled(
+              label: _isRacket ? '라켓명' : '신발명',
+              child: AppTextField(
+                hint: '모델명 입력',
+                controller: _customModelController,
+                maxLength: 100,
+              ),
+            ),
+          ] else ...[
+            _Labeled(
+              label: _isRacket ? '라켓명' : '신발명',
+              child: _Dropdown(
+                value: _directModelInput ? _directBrandOption : _model,
+                items: _brand == null
+                    ? const []
+                    : [
+                        _directBrandOption,
+                        ...models[_brand]!.map((option) => option.name),
+                      ],
+                itemLabel: (value) =>
+                    value == _directBrandOption ? '직접 입력' : value,
+                onChanged: (value) => setState(() {
+                  _directModelInput = value == _directBrandOption;
+                  _model = _directModelInput ? null : value;
+                }),
+              ),
+            ),
+            if (_directModelInput) ...[
+              const SizedBox(height: 16),
+              _Labeled(
+                label: '모델명 직접 입력',
+                child: AppTextField(
+                  hint: '모델명 입력',
+                  controller: _customModelController,
+                  maxLength: 100,
+                ),
+              ),
+            ],
+          ],
           const SizedBox(height: 16),
           _Labeled(
             label: '구매일',
@@ -349,6 +426,7 @@ class _EquipmentRegisterScreenState extends State<EquipmentRegisterScreen> {
               hint: '원',
               controller: _priceController,
               keyboardType: TextInputType.number,
+              inputFormatters: const [ThousandsSeparatorInputFormatter()],
             ),
           ),
 
@@ -581,10 +659,10 @@ class _Dropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
+    return DropdownButtonFormField2<String>(
       // key를 value로 두면 값이 바뀔 때 위젯을 새로 만들어 초기값이 반영된다
       key: ValueKey(value),
-      initialValue: value,
+      valueListenable: ValueNotifier(value),
       isExpanded: true,
       // 값이 없을 때 안쪽에 보이는 안내 문구
       hint: const Text('선택', style: TextStyle(color: _hint)),
@@ -600,13 +678,24 @@ class _Dropdown extends StatelessWidget {
           borderSide: BorderSide.none,
         ),
       ),
+      buttonStyleData: const FormFieldButtonStyleData(padding: EdgeInsets.zero),
+      menuItemStyleData: const MenuItemStyleData(
+        useDecorationHorizontalPadding: true,
+      ),
       items: [
         for (final item in items)
-          DropdownMenuItem(
+          DropdownItem(
             value: item,
             child: Text(itemLabel == null ? item : itemLabel!(item)),
           ),
       ],
+      dropdownStyleData: DropdownStyleData(
+        maxHeight: 360,
+        anchoredMinHeight: 240,
+        offset: Offset.zero,
+        isOverButton: false,
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+      ),
       onChanged: onChanged,
     );
   }

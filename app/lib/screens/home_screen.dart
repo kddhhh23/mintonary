@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_repositories.dart';
 import '../models/equipment.dart';
 import '../models/expense.dart';
 import '../models/workout_record.dart';
-import '../services/equipment_api.dart';
-import '../services/expense_api.dart';
-import '../services/record_api.dart';
 import '../services/session.dart';
 import 'equipment_screen.dart';
 import 'expense_screen.dart';
+import 'profile_setup_screen.dart';
 import 'racket_detail_screen.dart';
 import 'record_screen.dart';
 import 'shoe_detail_screen.dart';
@@ -30,25 +29,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   /// 현재 탭 — 0 홈, 1 기록, 2 장비, 3 지출
   int _tab = 0;
-  int _expenseScreenVersion = 0;
 
   void _goTab(int index) => setState(() => _tab = index);
-
-  Future<void> _add() async {
-    if (_tab != 3) {
-      _goTab(1);
-      return;
-    }
-    final saved = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ExpenseFormScreen(initialDate: DateTime.now()),
-      ),
-    );
-    if (saved == true && mounted) {
-      setState(() => _expenseScreenVersion++);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,14 +40,10 @@ class _HomeScreenState extends State<HomeScreen> {
           0 => _HomeBody(onGoTab: _goTab),
           1 => const RecordScreen(),
           2 => const EquipmentScreen(),
-          _ => ExpenseScreen(key: ValueKey(_expenseScreenVersion)),
+          _ => const ExpenseScreen(),
         },
       ),
-      bottomNavigationBar: _BottomBar(
-        current: _tab,
-        onTap: _goTab,
-        onAdd: _add,
-      ),
+      bottomNavigationBar: _BottomBar(current: _tab, onTap: _goTab),
     );
   }
 }
@@ -93,9 +71,9 @@ class _HomeBodyState extends State<_HomeBody> {
   Future<_HomeData> _load() async {
     final now = DateTime.now();
     final results = await Future.wait<Object>([
-      RecordApi.fetchMonth(now.year, now.month),
-      EquipmentApi.fetchEquipments(),
-      ExpenseApi.fetchMonth(now.year, now.month),
+      AppRepositories.records.fetchRecordMonth(now.year, now.month),
+      AppRepositories.equipment.fetchEquipments(),
+      AppRepositories.expenses.fetchExpenseMonth(now.year, now.month),
     ]);
     return _HomeData(
       records: results[0] as List<WorkoutRecord>,
@@ -106,6 +84,18 @@ class _HomeBodyState extends State<_HomeBody> {
 
   void _reload() => setState(() => _future = _load());
 
+  Future<void> _editProfile() async {
+    final profile = await AppRepositories.profile.load();
+    if (!mounted || profile == null) return;
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileSetupScreen(initialProfile: profile),
+      ),
+    );
+    if (saved == true && mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -113,7 +103,10 @@ class _HomeBodyState extends State<_HomeBody> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Header(nickname: Session.nickname ?? '회원'),
+          _Header(
+            nickname: Session.nickname ?? '회원',
+            onProfileTap: _editProfile,
+          ),
           const SizedBox(height: 24),
           FutureBuilder<_HomeData>(
             future: _future,
@@ -275,9 +268,10 @@ class _HomeContent extends StatelessWidget {
 
 /// 상단: 날짜 + 인사말 + 프로필
 class _Header extends StatelessWidget {
-  const _Header({required this.nickname});
+  const _Header({required this.nickname, this.onProfileTap});
 
   final String nickname;
+  final VoidCallback? onProfileTap;
 
   static const _weekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -304,15 +298,23 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: _navy,
-          child: Text(
-            nickname.isEmpty ? '회' : nickname.characters.first,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+        Semantics(
+          button: onProfileTap != null,
+          label: '내 정보 수정',
+          child: InkWell(
+            onTap: onProfileTap,
+            customBorder: const CircleBorder(),
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: _navy,
+              child: Text(
+                nickname.isEmpty ? '회' : nickname.characters.first,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
         ),
@@ -701,17 +703,12 @@ class _HomeError extends StatelessWidget {
   }
 }
 
-/// 하단 탭바 (가운데 + 버튼)
+/// 하단 탭바
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({
-    required this.current,
-    required this.onTap,
-    required this.onAdd,
-  });
+  const _BottomBar({required this.current, required this.onTap});
 
   final int current; // 현재 선택된 탭 번호
   final ValueChanged<int> onTap;
-  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -730,41 +727,9 @@ class _BottomBar extends StatelessWidget {
         children: [
           item(0, Icons.home_rounded, '홈'),
           item(1, Icons.calendar_today_outlined, '기록'),
-          _AddButton(onPressed: onAdd),
           item(2, Icons.sports_tennis_outlined, '장비'),
           item(3, Icons.account_balance_wallet_outlined, '지출'),
         ],
-      ),
-    );
-  }
-}
-
-/// 가운데 + 버튼 — 바 안에 두고 살짝만 위로 올린다
-class _AddButton extends StatelessWidget {
-  const _AddButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: Transform.translate(
-          offset: const Offset(0, -12), // 위로 12만큼 (레이아웃엔 영향 없음)
-          child: SizedBox(
-            width: 60,
-            height: 60,
-            child: FilledButton(
-              onPressed: onPressed,
-              style: FilledButton.styleFrom(
-                backgroundColor: _navy,
-                shape: const CircleBorder(),
-                padding: EdgeInsets.zero,
-              ),
-              child: const Icon(Icons.add, color: Colors.white, size: 30),
-            ),
-          ),
-        ),
       ),
     );
   }

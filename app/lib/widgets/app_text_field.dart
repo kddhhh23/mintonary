@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// 로그인·회원가입에서 함께 쓰는 입력 필드
 class AppTextField extends StatelessWidget {
@@ -9,6 +10,7 @@ class AppTextField extends StatelessWidget {
     this.obscure = false,
     this.keyboardType,
     this.maxLength,
+    this.inputFormatters,
   });
 
   /// 입력 전에 보여줄 안내 문구
@@ -26,6 +28,8 @@ class AppTextField extends StatelessWidget {
   /// 최대 글자 수 — DB 컬럼 제한에 맞출 때 지정 (카운터는 숨긴다)
   final int? maxLength;
 
+  final List<TextInputFormatter>? inputFormatters;
+
   @override
   Widget build(BuildContext context) {
     return TextField(
@@ -33,6 +37,7 @@ class AppTextField extends StatelessWidget {
       obscureText: obscure,
       keyboardType: keyboardType,
       maxLength: maxLength,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Color(0xFFA8B0BF)),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_repositories.dart';
 import '../models/equipment.dart';
-import '../services/equipment_api.dart';
 import 'equipment_register_screen.dart';
 import 'racket_detail_screen.dart';
 import 'shoe_detail_screen.dart';
@@ -24,11 +24,11 @@ class _EquipmentScreenState extends State<EquipmentScreen> {
   @override
   void initState() {
     super.initState();
-    _future = EquipmentApi.fetchEquipments();
+    _future = AppRepositories.equipment.fetchEquipments();
   }
 
   void _reload() {
-    setState(() => _future = EquipmentApi.fetchEquipments());
+    setState(() => _future = AppRepositories.equipment.fetchEquipments());
   }
 
   Future<void> _openRegister() async {

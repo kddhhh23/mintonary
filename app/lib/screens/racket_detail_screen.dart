@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_repositories.dart';
 import '../models/equipment.dart';
-import '../services/equipment_api.dart';
+import '../services/notification_service.dart';
 import '../widgets/app_text_field.dart';
+import 'equipment_edit_screen.dart';
 
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
@@ -10,6 +12,8 @@ const _lightNavy = Color(0xFFE9EEF8);
 const _red = Color(0xFFD9433C);
 const _lightRed = Color(0xFFFCE8E7);
 const _bg = Color(0xFFF1F3F8);
+
+enum _EquipmentAction { edit, delete }
 
 /// 그립 종류 — 서버 GripType과 같은 값
 const _gripTypes = {'OVER': '오버그립', 'TOWEL': '타월그립', 'CUSHION': '쿠션그립'};
@@ -42,6 +46,12 @@ class _GripChange {
   final DateTime date;
 }
 
+class _AlarmDateSelection {
+  const _AlarmDateSelection(this.date);
+
+  final DateTime? date;
+}
+
 /// 라켓 상세 화면
 class RacketDetailScreen extends StatefulWidget {
   const RacketDetailScreen({super.key, required this.equipmentId});
@@ -64,7 +74,9 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
 
   Future<void> _load() async {
     try {
-      final detail = await EquipmentApi.fetchDetail(widget.equipmentId);
+      final detail = await AppRepositories.equipment.fetchDetail(
+        widget.equipmentId,
+      );
       if (!mounted) return;
       setState(() {
         _detail = detail;
@@ -81,6 +93,57 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
     );
+  }
+
+  Future<void> _editEquipment() async {
+    final detail = _detail;
+    if (detail == null) return;
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => EquipmentEditScreen(detail: detail)),
+    );
+    if (saved == true) await _load();
+  }
+
+  Future<void> _deleteEquipment() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('라켓 삭제'),
+        content: const Text(
+          '라켓과 스트링·그립 교체 이력이 모두 삭제됩니다.\n'
+          '이미 추가된 지출 내역은 유지됩니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: _red),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await NotificationService.cancelStringAlarm(widget.equipmentId);
+      await AppRepositories.equipment.deleteEquipment(widget.equipmentId);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) _showError(e);
+    }
+  }
+
+  void _handleAction(_EquipmentAction action) {
+    switch (action) {
+      case _EquipmentAction.edit:
+        _editEquipment();
+      case _EquipmentAction.delete:
+        _deleteEquipment();
+    }
   }
 
   /// 시각을 뗀 오늘 날짜 — 날짜 차이 계산용
@@ -103,7 +166,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     );
     if (result == null || result == detail.inUse) return;
     try {
-      await EquipmentApi.setStatus(widget.equipmentId, result);
+      await AppRepositories.equipment.setStatus(widget.equipmentId, result);
       await _load();
     } catch (e) {
       if (mounted) _showError(e);
@@ -112,17 +175,43 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
 
   /// 바텀시트로 다음 교체 알림 날짜를 고른다
   Future<void> _editStringAlarm() async {
-    final result = await showModalBottomSheet<DateTime>(
+    final racket = _detail?.racket;
+    if (racket == null) return;
+    final result = await showModalBottomSheet<_AlarmDateSelection>(
       context: context,
       backgroundColor: _bg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => _AlarmDateSheet(today: _today),
+      builder: (context) => _AlarmDateSheet(
+        today: _today,
+        hasAlarm: racket.stringAlarmDate != null,
+      ),
     );
     if (result == null) return;
     try {
-      await EquipmentApi.setStringAlarm(widget.equipmentId, result);
+      if (result.date == null) {
+        await NotificationService.cancelStringAlarm(widget.equipmentId);
+      } else {
+        final allowed = await NotificationService.requestPermission();
+        if (!allowed) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('알림 권한을 허용해야 교체 알림을 받을 수 있어요.')),
+            );
+          }
+          return;
+        }
+        await NotificationService.scheduleStringAlarm(
+          equipmentId: widget.equipmentId,
+          racketName: '${racket.brand} ${racket.name}',
+          date: result.date!,
+        );
+      }
+      await AppRepositories.equipment.setStringAlarm(
+        widget.equipmentId,
+        result.date,
+      );
       await _load();
     } catch (e) {
       if (mounted) _showError(e);
@@ -146,7 +235,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     );
     if (result == null) return;
     try {
-      await EquipmentApi.addStringChange(
+      await AppRepositories.equipment.addStringChange(
         widget.equipmentId,
         name: result.name,
         tension: result.tension,
@@ -175,7 +264,7 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
     );
     if (result == null) return;
     try {
-      await EquipmentApi.addGripChange(
+      await AppRepositories.equipment.addGripChange(
         widget.equipmentId,
         name: result.name,
         type: result.type,
@@ -213,7 +302,10 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
   Future<void> _deleteStringHistory(int historyId) async {
     if (!await _confirmDeleteHistory()) return;
     try {
-      await EquipmentApi.deleteStringChange(widget.equipmentId, historyId);
+      await AppRepositories.equipment.deleteStringChange(
+        widget.equipmentId,
+        historyId,
+      );
       await _load();
     } catch (e) {
       if (mounted) _showError(e);
@@ -223,7 +315,10 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
   Future<void> _deleteGripHistory(int historyId) async {
     if (!await _confirmDeleteHistory()) return;
     try {
-      await EquipmentApi.deleteGripChange(widget.equipmentId, historyId);
+      await AppRepositories.equipment.deleteGripChange(
+        widget.equipmentId,
+        historyId,
+      );
       await _load();
     } catch (e) {
       if (mounted) _showError(e);
@@ -260,9 +355,27 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
         title: const Text('라켓 상세'),
         backgroundColor: Colors.transparent,
         actions: [
-          IconButton(
-            onPressed: () {}, // TODO: 수정 / 방출 메뉴
-            icon: const Icon(Icons.more_horiz),
+          PopupMenuButton<_EquipmentAction>(
+            enabled: _detail != null,
+            onSelected: _handleAction,
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: _EquipmentAction.edit,
+                child: ListTile(
+                  leading: Icon(Icons.edit_outlined),
+                  title: Text('수정'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: _EquipmentAction.delete,
+                child: ListTile(
+                  leading: Icon(Icons.delete_outline, color: _red),
+                  title: Text('삭제', style: TextStyle(color: _red)),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -421,7 +534,9 @@ class _RacketDetailScreenState extends State<RacketDetailScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    alarm == null ? '다음 교체 알림 없음' : '다음 교체 ${_formatDate(alarm)}',
+                    alarm == null
+                        ? '다음 교체 알림 없음'
+                        : '다음 교체 ${_formatDate(alarm)}',
                     style: const TextStyle(fontSize: 13, color: _gray),
                   ),
                 ),
@@ -719,19 +834,23 @@ class _StatusOption extends StatelessWidget {
 
 /// 다음 교체 알림 날짜 선택 바텀시트 — 고르면 날짜를 돌려준다
 class _AlarmDateSheet extends StatelessWidget {
-  const _AlarmDateSheet({required this.today});
+  const _AlarmDateSheet({required this.today, required this.hasAlarm});
 
   final DateTime today;
+  final bool hasAlarm;
 
   /// 달력에서 직접 고른다
   Future<void> _pickCustom(BuildContext context) async {
+    final tomorrow = today.add(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
-      initialDate: today,
-      firstDate: today,
+      initialDate: tomorrow,
+      firstDate: tomorrow,
       lastDate: DateTime(today.year + 2),
     );
-    if (picked != null && context.mounted) Navigator.pop(context, picked);
+    if (picked != null && context.mounted) {
+      Navigator.pop(context, _AlarmDateSelection(picked));
+    }
   }
 
   String _formatDate(DateTime d) =>
@@ -760,13 +879,22 @@ class _AlarmDateSheet extends StatelessWidget {
               _AlarmOption(
                 label: option.label,
                 sub: _formatDate(option.date),
-                onTap: () => Navigator.pop(context, option.date),
+                onTap: () =>
+                    Navigator.pop(context, _AlarmDateSelection(option.date)),
               ),
             _AlarmOption(
               label: '직접 선택',
               sub: '달력에서 고르기',
               onTap: () => _pickCustom(context),
             ),
+            if (hasAlarm)
+              _AlarmOption(
+                label: '알림 해제',
+                sub: '예약 취소',
+                destructive: true,
+                onTap: () =>
+                    Navigator.pop(context, const _AlarmDateSelection(null)),
+              ),
           ],
         ),
       ),
@@ -780,11 +908,13 @@ class _AlarmOption extends StatelessWidget {
     required this.label,
     required this.sub,
     required this.onTap,
+    this.destructive = false,
   });
 
   final String label;
   final String sub;
   final VoidCallback onTap;
+  final bool destructive;
 
   @override
   Widget build(BuildContext context) {
@@ -804,9 +934,10 @@ class _AlarmOption extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
+                  color: destructive ? _red : null,
                 ),
               ),
               const Spacer(),
@@ -932,8 +1063,9 @@ class _StringChangeSheet extends StatefulWidget {
 }
 
 class _StringChangeSheetState extends State<_StringChangeSheet> {
-  late final _nameController =
-      TextEditingController(text: widget.initialName ?? '');
+  late final _nameController = TextEditingController(
+    text: widget.initialName ?? '',
+  );
   late final _tensionController = TextEditingController(
     text: widget.initialTension == null ? '' : '${widget.initialTension}',
   );
@@ -1065,8 +1197,9 @@ class _GripChangeSheet extends StatefulWidget {
 }
 
 class _GripChangeSheetState extends State<_GripChangeSheet> {
-  late final _nameController =
-      TextEditingController(text: widget.initialName ?? '');
+  late final _nameController = TextEditingController(
+    text: widget.initialName ?? '',
+  );
   late String? _type = widget.initialType;
 
   /// 교체일 — 기본은 오늘
@@ -1096,10 +1229,7 @@ class _GripChangeSheetState extends State<_GripChangeSheet> {
     final name = _nameController.text.trim();
     final type = _type;
     if (name.isEmpty || type == null) return;
-    Navigator.pop(
-      context,
-      _GripChange(name: name, type: type, date: _date),
-    );
+    Navigator.pop(context, _GripChange(name: name, type: type, date: _date));
   }
 
   @override

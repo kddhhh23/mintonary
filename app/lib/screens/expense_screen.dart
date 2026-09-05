@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../data/app_repositories.dart';
 import '../models/expense.dart';
-import '../services/expense_api.dart';
+import '../utils/thousands_separator_input_formatter.dart';
 import '../widgets/app_text_field.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -45,7 +45,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
       _error = null;
     });
     try {
-      final data = await ExpenseApi.fetchMonth(
+      final data = await AppRepositories.expenses.fetchExpenseMonth(
         requestedMonth.year,
         requestedMonth.month,
       );
@@ -104,7 +104,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     );
     if (confirmed != true) return;
     try {
-      await ExpenseApi.delete(expense.id);
+      await AppRepositories.expenses.deleteExpense(expense.id);
       await _load();
     } catch (error) {
       if (!mounted) return;
@@ -425,7 +425,9 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     _category = expense?.category ?? ExpenseCategory.other;
     _titleController = TextEditingController(text: expense?.title ?? '');
     _amountController = TextEditingController(
-      text: expense == null ? '' : '${expense.amount}',
+      text: expense == null
+          ? ''
+          : formatWithThousandsSeparators(expense.amount),
     );
     _memoController = TextEditingController(text: expense?.memo ?? '');
   }
@@ -460,7 +462,9 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
   Future<void> _save() async {
     final title = _titleController.text.trim();
-    final amount = int.tryParse(_amountController.text);
+    final amount = int.tryParse(
+      removeThousandsSeparators(_amountController.text),
+    );
     if (title.isEmpty) {
       _message('지출명을 입력해 주세요.');
       return;
@@ -477,7 +481,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     try {
       final expense = widget.expense;
       if (expense == null) {
-        await ExpenseApi.create(
+        await AppRepositories.expenses.createExpense(
           date: _date,
           category: _category,
           title: title,
@@ -485,7 +489,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
           memo: _memoController.text.trim(),
         );
       } else {
-        await ExpenseApi.update(
+        await AppRepositories.expenses.updateExpense(
           expense.id,
           date: _date,
           category: _category,
@@ -547,7 +551,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
               TextField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: const [ThousandsSeparatorInputFormatter()],
                 decoration: InputDecoration(
                   hintText: '예: 18000',
                   suffixText: '원',

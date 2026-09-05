@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_repositories.dart';
 import '../models/equipment.dart';
-import '../services/equipment_api.dart';
+import 'equipment_edit_screen.dart';
 
 const _navy = Color(0xFF3D5379);
 const _gray = Color(0xFF9AA3B2);
 const _lightNavy = Color(0xFFE9EEF8);
 const _bg = Color(0xFFF1F3F8);
+const _red = Color(0xFFD9433C);
+
+enum _EquipmentAction { edit, delete }
 
 /// 신발 상세 화면
 class ShoeDetailScreen extends StatefulWidget {
@@ -30,7 +34,9 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
 
   Future<void> _load() async {
     try {
-      final detail = await EquipmentApi.fetchDetail(widget.equipmentId);
+      final detail = await AppRepositories.equipment.fetchDetail(
+        widget.equipmentId,
+      );
       if (!mounted) return;
       setState(() {
         _detail = detail;
@@ -56,13 +62,66 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
     );
     if (result == null || result == detail.inUse) return;
     try {
-      await EquipmentApi.setStatus(widget.equipmentId, result);
+      await AppRepositories.equipment.setStatus(widget.equipmentId, result);
       await _load();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
       );
+    }
+  }
+
+  void _showError(Object e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+    );
+  }
+
+  Future<void> _editEquipment() async {
+    final detail = _detail;
+    if (detail == null) return;
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => EquipmentEditScreen(detail: detail)),
+    );
+    if (saved == true) await _load();
+  }
+
+  Future<void> _deleteEquipment() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('신발 삭제'),
+        content: const Text('신발 정보가 완전히 삭제됩니다.\n이미 추가된 지출 내역은 유지됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: _red),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await AppRepositories.equipment.deleteEquipment(widget.equipmentId);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) _showError(e);
+    }
+  }
+
+  void _handleAction(_EquipmentAction action) {
+    switch (action) {
+      case _EquipmentAction.edit:
+        _editEquipment();
+      case _EquipmentAction.delete:
+        _deleteEquipment();
     }
   }
 
@@ -92,9 +151,27 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
         title: const Text('신발 상세'),
         backgroundColor: Colors.transparent,
         actions: [
-          IconButton(
-            onPressed: () {}, // TODO: 수정 / 방출 메뉴
-            icon: const Icon(Icons.more_horiz),
+          PopupMenuButton<_EquipmentAction>(
+            enabled: _detail != null,
+            onSelected: _handleAction,
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: _EquipmentAction.edit,
+                child: ListTile(
+                  leading: Icon(Icons.edit_outlined),
+                  title: Text('수정'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: _EquipmentAction.delete,
+                child: ListTile(
+                  leading: Icon(Icons.delete_outline, color: _red),
+                  title: Text('삭제', style: TextStyle(color: _red)),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),

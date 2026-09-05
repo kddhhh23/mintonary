@@ -1,13 +1,12 @@
-// 장비 API 응답을 담는 데이터 모델
-
-DateTime? _date(String? value) => value == null ? null : DateTime.parse(value);
+// 장비 데이터 모델
 
 /// 등록 화면 드롭다운용 라켓 모델
 class RacketModelOption {
-  RacketModelOption.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      brand = json['brand'] as String,
-      name = json['name'] as String;
+  const RacketModelOption({
+    required this.id,
+    required this.brand,
+    required this.name,
+  });
 
   final int id;
   final String brand;
@@ -16,10 +15,11 @@ class RacketModelOption {
 
 /// 등록 화면 드롭다운용 신발 모델
 class ShoeModelOption {
-  ShoeModelOption.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      brand = json['brand'] as String,
-      name = json['name'] as String;
+  const ShoeModelOption({
+    required this.id,
+    required this.brand,
+    required this.name,
+  });
 
   final int id;
   final String brand;
@@ -28,31 +28,26 @@ class ShoeModelOption {
 
 /// 장비 탭 목록
 class EquipmentList {
-  EquipmentList.fromJson(Map<String, dynamic> json)
-    : rackets = (json['rackets'] as List)
-          .map((e) => RacketSummary.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      shoes = (json['shoes'] as List)
-          .map((e) => ShoeSummary.fromJson(e as Map<String, dynamic>))
-          .toList();
+  const EquipmentList({required this.rackets, required this.shoes});
 
   final List<RacketSummary> rackets;
   final List<ShoeSummary> shoes;
 }
 
 class RacketSummary {
-  RacketSummary.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      brand = json['brand'] as String,
-      name = json['name'] as String,
-      purchaseDate = _date(json['purchaseDate'] as String?),
-      price = json['price'] as int?,
-      inUse = json['inUse'] as bool,
-      stringName = json['stringName'] as String?,
-      tension = json['tension'] as int?,
-      strungAt = _date(json['strungAt'] as String?),
-      gripName = json['gripName'] as String?,
-      wrappedAt = _date(json['wrappedAt'] as String?);
+  const RacketSummary({
+    required this.id,
+    required this.brand,
+    required this.name,
+    required this.purchaseDate,
+    required this.price,
+    required this.inUse,
+    required this.stringName,
+    required this.tension,
+    required this.strungAt,
+    required this.gripName,
+    required this.wrappedAt,
+  });
 
   final int id;
   final String brand;
@@ -68,13 +63,14 @@ class RacketSummary {
 }
 
 class ShoeSummary {
-  ShoeSummary.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      brand = json['brand'] as String,
-      name = json['name'] as String,
-      purchaseDate = _date(json['purchaseDate'] as String?),
-      price = json['price'] as int?,
-      inUse = json['inUse'] as bool;
+  const ShoeSummary({
+    required this.id,
+    required this.brand,
+    required this.name,
+    required this.purchaseDate,
+    required this.price,
+    required this.inUse,
+  });
 
   final int id;
   final String brand;
@@ -86,19 +82,16 @@ class ShoeSummary {
 
 /// 장비 상세 — type에 따라 racket 또는 shoe 중 하나만 채워진다
 class EquipmentDetail {
-  EquipmentDetail.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      type = json['type'] as String,
-      purchaseDate = _date(json['purchaseDate'] as String?),
-      price = json['price'] as int?,
-      memo = json['memo'] as String?,
-      inUse = json['inUse'] as bool,
-      racket = json['racket'] == null
-          ? null
-          : RacketInfo.fromJson(json['racket'] as Map<String, dynamic>),
-      shoe = json['shoe'] == null
-          ? null
-          : ShoeInfo.fromJson(json['shoe'] as Map<String, dynamic>);
+  const EquipmentDetail({
+    required this.id,
+    required this.type,
+    required this.purchaseDate,
+    required this.price,
+    required this.memo,
+    required this.inUse,
+    required this.racket,
+    required this.shoe,
+  });
 
   final int id;
   final String type;
@@ -111,26 +104,23 @@ class EquipmentDetail {
 }
 
 class RacketInfo {
-  RacketInfo.fromJson(Map<String, dynamic> json)
-    : brand = json['brand'] as String,
-      series = json['series'] as String?,
-      name = json['name'] as String,
-      weight = json['weight'] as String?,
-      balance = json['balance'] as String?,
-      flex = json['flex'] as String?,
-      stringAlarmDate = _date(json['stringAlarmDate'] as String?),
-      stringHistories = (json['stringHistories'] as List)
-          .map((e) => StringHistoryItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      gripHistories = (json['gripHistories'] as List)
-          .map((e) => GripHistoryItem.fromJson(e as Map<String, dynamic>))
-          .toList();
+  const RacketInfo({
+    required this.brand,
+    required this.series,
+    required this.name,
+    required this.weight,
+    required this.balance,
+    required this.flex,
+    required this.stringAlarmDate,
+    required this.stringHistories,
+    required this.gripHistories,
+  });
 
   final String brand;
   final String? series;
   final String name;
 
-  /// 서버 표기 그대로 (U2~U6)
+  /// 라켓 무게 표기 (U2~U6)
   final String? weight;
   final String? balance;
   final String? flex;
@@ -142,10 +132,11 @@ class RacketInfo {
 }
 
 class ShoeInfo {
-  ShoeInfo.fromJson(Map<String, dynamic> json)
-    : brand = json['brand'] as String,
-      name = json['name'] as String,
-      width = json['width'] as String?;
+  const ShoeInfo({
+    required this.brand,
+    required this.name,
+    required this.width,
+  });
 
   final String brand;
   final String name;
@@ -153,11 +144,12 @@ class ShoeInfo {
 }
 
 class StringHistoryItem {
-  StringHistoryItem.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      name = json['name'] as String,
-      tension = json['tension'] as int?,
-      strungAt = DateTime.parse(json['strungAt'] as String);
+  const StringHistoryItem({
+    required this.id,
+    required this.name,
+    required this.tension,
+    required this.strungAt,
+  });
 
   final int id;
   final String name;
@@ -166,11 +158,12 @@ class StringHistoryItem {
 }
 
 class GripHistoryItem {
-  GripHistoryItem.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      name = json['name'] as String,
-      type = json['type'] as String?,
-      wrappedAt = DateTime.parse(json['wrappedAt'] as String);
+  const GripHistoryItem({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.wrappedAt,
+  });
 
   final int id;
   final String name;
