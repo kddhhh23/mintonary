@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../data/app_repositories.dart';
-import '../data/repositories.dart';
 import '../models/equipment.dart';
 import 'equipment_edit_screen.dart';
 
@@ -156,15 +155,14 @@ class _ShoeDetailScreenState extends State<ShoeDetailScreen> {
             enabled: _detail != null,
             onSelected: _handleAction,
             itemBuilder: (context) => [
-              if (storageMode == StorageMode.local)
-                const PopupMenuItem(
-                  value: _EquipmentAction.edit,
-                  child: ListTile(
-                    leading: Icon(Icons.edit_outlined),
-                    title: Text('수정'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
+              const PopupMenuItem(
+                value: _EquipmentAction.edit,
+                child: ListTile(
+                  leading: Icon(Icons.edit_outlined),
+                  title: Text('수정'),
+                  contentPadding: EdgeInsets.zero,
                 ),
+              ),
               const PopupMenuItem(
                 value: _EquipmentAction.delete,
                 child: ListTile(

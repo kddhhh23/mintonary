@@ -520,7 +520,7 @@ class LocalDatabase
   ExpenseItem _expenseFromRow(Map<String, Object?> r) => ExpenseItem(
     id: r['id'] as int,
     date: DateTime.parse(r['expense_date'] as String),
-    category: ExpenseCategory.fromServer(r['category'] as String),
+    category: ExpenseCategory.fromStorage(r['category'] as String),
     title: r['title'] as String,
     amount: r['amount'] as int,
     memo: r['memo'] as String?,
@@ -536,7 +536,7 @@ class LocalDatabase
   }) async {
     await _db.insert('expense', {
       'expense_date': _iso(date),
-      'category': category.serverValue,
+      'category': category.storageValue,
       'title': title,
       'amount': amount,
       'memo': memo,
@@ -556,7 +556,7 @@ class LocalDatabase
       'expense',
       {
         'expense_date': _iso(date),
-        'category': category.serverValue,
+        'category': category.storageValue,
         'title': title,
         'amount': amount,
         'memo': memo,
@@ -793,7 +793,7 @@ class LocalDatabase
         )).first;
         await txn.insert('expense', {
           'expense_date': _iso(purchaseDate ?? DateTime.now()),
-          'category': ExpenseCategory.equipment.serverValue,
+          'category': ExpenseCategory.equipment.storageValue,
           'title': '${model['brand']} ${model['name']}',
           'amount': price,
         });

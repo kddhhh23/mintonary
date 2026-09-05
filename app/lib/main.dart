@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
 
 import 'data/app_repositories.dart';
-import 'data/repositories.dart';
 import 'screens/home_screen.dart';
-import 'screens/login_screen.dart';
 import 'screens/welcome_screen.dart';
-import 'services/session.dart';
 import 'services/notification_service.dart';
+import 'services/session.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.initialize();
   await AppRepositories.initialize();
 
-  Widget home;
-  if (storageMode == StorageMode.local) {
-    final profile = await AppRepositories.profile.load();
-    Session.nickname = profile?.nickname;
-    home = profile == null ? const WelcomeScreen() : const HomeScreen();
-  } else {
-    home = const LoginScreen();
-  }
+  final profile = await AppRepositories.profile.load();
+  Session.nickname = profile?.nickname;
+  final home = profile == null ? const WelcomeScreen() : const HomeScreen();
   runApp(MintonaryApp(home: home));
 }
 

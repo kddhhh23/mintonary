@@ -2,10 +2,6 @@ import '../models/equipment.dart';
 import '../models/expense.dart';
 import '../models/workout_record.dart';
 
-enum StorageMode { local, remote }
-
-const storageMode = StorageMode.local;
-
 class LocalProfile {
   const LocalProfile({
     required this.nickname,

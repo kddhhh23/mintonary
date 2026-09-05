@@ -19,13 +19,13 @@ enum _RecordType {
   lesson('LESSON'),
   tournament('TOURNAMENT');
 
-  const _RecordType(this.serverValue);
+  const _RecordType(this.storageValue);
 
   /// 서버 WorkoutType과 같은 값
-  final String serverValue;
+  final String storageValue;
 
-  static _RecordType from(String serverValue) => values.firstWhere(
-    (type) => type.serverValue == serverValue,
+  static _RecordType from(String storageValue) => values.firstWhere(
+    (type) => type.storageValue == storageValue,
     orElse: () => general,
   );
 }
@@ -725,7 +725,7 @@ class _RecordFormScreenState extends State<_RecordFormScreen> {
       if (record == null) {
         await AppRepositories.records.createRecord(
           date: _date,
-          type: _type.serverValue,
+          type: _type.storageValue,
           title: title,
           place: place,
           coach: coach,
@@ -736,7 +736,7 @@ class _RecordFormScreenState extends State<_RecordFormScreen> {
         await AppRepositories.records.updateRecord(
           record.id,
           date: _date,
-          type: _type.serverValue,
+          type: _type.storageValue,
           title: title,
           place: place,
           coach: coach,

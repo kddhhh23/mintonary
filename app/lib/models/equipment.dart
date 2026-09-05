@@ -1,6 +1,4 @@
-// 장비 API 응답을 담는 데이터 모델
-
-DateTime? _date(String? value) => value == null ? null : DateTime.parse(value);
+// 장비 데이터 모델
 
 /// 등록 화면 드롭다운용 라켓 모델
 class RacketModelOption {
@@ -9,11 +7,6 @@ class RacketModelOption {
     required this.brand,
     required this.name,
   });
-
-  RacketModelOption.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      brand = json['brand'] as String,
-      name = json['name'] as String;
 
   final int id;
   final String brand;
@@ -28,11 +21,6 @@ class ShoeModelOption {
     required this.name,
   });
 
-  ShoeModelOption.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      brand = json['brand'] as String,
-      name = json['name'] as String;
-
   final int id;
   final String brand;
   final String name;
@@ -41,14 +29,6 @@ class ShoeModelOption {
 /// 장비 탭 목록
 class EquipmentList {
   const EquipmentList({required this.rackets, required this.shoes});
-
-  EquipmentList.fromJson(Map<String, dynamic> json)
-    : rackets = (json['rackets'] as List)
-          .map((e) => RacketSummary.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      shoes = (json['shoes'] as List)
-          .map((e) => ShoeSummary.fromJson(e as Map<String, dynamic>))
-          .toList();
 
   final List<RacketSummary> rackets;
   final List<ShoeSummary> shoes;
@@ -68,19 +48,6 @@ class RacketSummary {
     required this.gripName,
     required this.wrappedAt,
   });
-
-  RacketSummary.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      brand = json['brand'] as String,
-      name = json['name'] as String,
-      purchaseDate = _date(json['purchaseDate'] as String?),
-      price = json['price'] as int?,
-      inUse = json['inUse'] as bool,
-      stringName = json['stringName'] as String?,
-      tension = json['tension'] as int?,
-      strungAt = _date(json['strungAt'] as String?),
-      gripName = json['gripName'] as String?,
-      wrappedAt = _date(json['wrappedAt'] as String?);
 
   final int id;
   final String brand;
@@ -105,14 +72,6 @@ class ShoeSummary {
     required this.inUse,
   });
 
-  ShoeSummary.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      brand = json['brand'] as String,
-      name = json['name'] as String,
-      purchaseDate = _date(json['purchaseDate'] as String?),
-      price = json['price'] as int?,
-      inUse = json['inUse'] as bool;
-
   final int id;
   final String brand;
   final String name;
@@ -133,20 +92,6 @@ class EquipmentDetail {
     required this.racket,
     required this.shoe,
   });
-
-  EquipmentDetail.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      type = json['type'] as String,
-      purchaseDate = _date(json['purchaseDate'] as String?),
-      price = json['price'] as int?,
-      memo = json['memo'] as String?,
-      inUse = json['inUse'] as bool,
-      racket = json['racket'] == null
-          ? null
-          : RacketInfo.fromJson(json['racket'] as Map<String, dynamic>),
-      shoe = json['shoe'] == null
-          ? null
-          : ShoeInfo.fromJson(json['shoe'] as Map<String, dynamic>);
 
   final int id;
   final String type;
@@ -171,26 +116,11 @@ class RacketInfo {
     required this.gripHistories,
   });
 
-  RacketInfo.fromJson(Map<String, dynamic> json)
-    : brand = json['brand'] as String,
-      series = json['series'] as String?,
-      name = json['name'] as String,
-      weight = json['weight'] as String?,
-      balance = json['balance'] as String?,
-      flex = json['flex'] as String?,
-      stringAlarmDate = _date(json['stringAlarmDate'] as String?),
-      stringHistories = (json['stringHistories'] as List)
-          .map((e) => StringHistoryItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      gripHistories = (json['gripHistories'] as List)
-          .map((e) => GripHistoryItem.fromJson(e as Map<String, dynamic>))
-          .toList();
-
   final String brand;
   final String? series;
   final String name;
 
-  /// 서버 표기 그대로 (U2~U6)
+  /// 라켓 무게 표기 (U2~U6)
   final String? weight;
   final String? balance;
   final String? flex;
@@ -208,11 +138,6 @@ class ShoeInfo {
     required this.width,
   });
 
-  ShoeInfo.fromJson(Map<String, dynamic> json)
-    : brand = json['brand'] as String,
-      name = json['name'] as String,
-      width = json['width'] as String?;
-
   final String brand;
   final String name;
   final String? width;
@@ -225,12 +150,6 @@ class StringHistoryItem {
     required this.tension,
     required this.strungAt,
   });
-
-  StringHistoryItem.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      name = json['name'] as String,
-      tension = json['tension'] as int?,
-      strungAt = DateTime.parse(json['strungAt'] as String);
 
   final int id;
   final String name;
@@ -245,12 +164,6 @@ class GripHistoryItem {
     required this.type,
     required this.wrappedAt,
   });
-
-  GripHistoryItem.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      name = json['name'] as String,
-      type = json['type'] as String?,
-      wrappedAt = DateTime.parse(json['wrappedAt'] as String);
 
   final int id;
   final String name;

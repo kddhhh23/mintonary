@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../data/app_repositories.dart';
-import '../data/repositories.dart';
 import '../models/equipment.dart';
 import '../models/expense.dart';
 import '../models/workout_record.dart';
@@ -106,9 +105,7 @@ class _HomeBodyState extends State<_HomeBody> {
         children: [
           _Header(
             nickname: Session.nickname ?? '회원',
-            onProfileTap: storageMode == StorageMode.local
-                ? _editProfile
-                : null,
+            onProfileTap: _editProfile,
           ),
           const SizedBox(height: 24),
           FutureBuilder<_HomeData>(

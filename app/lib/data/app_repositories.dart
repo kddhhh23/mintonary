@@ -1,5 +1,4 @@
 import 'local_database.dart';
-import 'remote_repositories.dart';
 import 'repositories.dart';
 
 class AppRepositories {
@@ -11,17 +10,10 @@ class AppRepositories {
   static late EquipmentRepository equipment;
 
   static Future<void> initialize() async {
-    if (storageMode == StorageMode.local) {
-      final database = await LocalDatabase.open();
-      profile = database;
-      records = database;
-      expenses = database;
-      equipment = database;
-      return;
-    }
-    profile = UnsupportedRemoteProfileRepository();
-    records = RemoteRecordRepository();
-    expenses = RemoteExpenseRepository();
-    equipment = RemoteEquipmentRepository();
+    final database = await LocalDatabase.open();
+    profile = database;
+    records = database;
+    expenses = database;
+    equipment = database;
   }
 }
