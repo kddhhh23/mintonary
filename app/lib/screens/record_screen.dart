@@ -569,7 +569,7 @@ class _RecordCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   record.title,
@@ -589,7 +589,7 @@ class _RecordCard extends StatelessWidget {
                 constraints: const BoxConstraints(),
                 visualDensity: VisualDensity.compact,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 6),
               Container(
                 width: 1,
                 height: 18,
