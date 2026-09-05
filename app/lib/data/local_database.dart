@@ -24,8 +24,9 @@ class LocalDatabase
 
   final Database _db;
 
-  static Future<LocalDatabase> open() async {
-    final path = p.join(await getDatabasesPath(), 'mintonary.db');
+  static Future<LocalDatabase> open({String? databasePath}) async {
+    final path =
+        databasePath ?? p.join(await getDatabasesPath(), 'mintonary.db');
     final db = await openDatabase(
       path,
       version: 1,
@@ -35,6 +36,12 @@ class LocalDatabase
     );
     return LocalDatabase._(db);
   }
+
+  /// Closes the underlying database connection.
+  ///
+  /// The production app keeps a single connection for its lifetime. Tests use
+  /// this method to dispose their isolated in-memory databases.
+  Future<void> close() => _db.close();
 
   static Future<void> _create(Database db, int version) async {
     await db.execute(
@@ -330,7 +337,7 @@ class LocalDatabase
     required int amount,
     String? memo,
   }) async {
-    await _db.update(
+    final updated = await _db.update(
       'expense',
       {
         'expense_date': _iso(date),
@@ -342,6 +349,7 @@ class LocalDatabase
       where: 'id = ?',
       whereArgs: [id],
     );
+    if (updated == 0) throw Exception('지출 내역을 찾을 수 없습니다.');
   }
 
   @override
@@ -377,6 +385,9 @@ class LocalDatabase
     required String brand,
     required String name,
   }) async {
+    if (type != 'RACKET' && type != 'SHOE') {
+      throw ArgumentError.value(type, 'type', '지원하지 않는 장비 종류입니다.');
+    }
     final table = type == 'RACKET' ? 'racket_model' : 'shoe_model';
     final cleanBrand = brand.trim();
     final cleanName = name.trim();
@@ -544,6 +555,18 @@ class LocalDatabase
     DateTime? wrappedAt,
   }) async {
     await _db.transaction((txn) async {
+      if (type != 'RACKET' && type != 'SHOE') {
+        throw ArgumentError.value(type, 'type', '지원하지 않는 장비 종류입니다.');
+      }
+      final modelTable = type == 'RACKET' ? 'racket_model' : 'shoe_model';
+      final model = await txn.query(
+        modelTable,
+        where: 'id = ?',
+        whereArgs: [modelId],
+        limit: 1,
+      );
+      if (model.isEmpty) throw Exception('선택한 장비 모델을 찾을 수 없습니다.');
+
       final id = await txn.insert('equipment', {
         'type': type,
         'model_id': modelId,
@@ -567,16 +590,10 @@ class LocalDatabase
         });
       }
       if (addToExpenses && price != null) {
-        final table = type == 'RACKET' ? 'racket_model' : 'shoe_model';
-        final model = (await txn.query(
-          table,
-          where: 'id = ?',
-          whereArgs: [modelId],
-        )).first;
         await txn.insert('expense', {
           'expense_date': _iso(purchaseDate ?? DateTime.now()),
           'category': ExpenseCategory.equipment.storageValue,
-          'title': '${model['brand']} ${model['name']}',
+          'title': '${model.first['brand']} ${model.first['name']}',
           'amount': price,
         });
       }
