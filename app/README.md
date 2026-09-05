@@ -1,6 +1,6 @@
-# app
+# 민터너리 (Mintonary)
 
-A new Flutter project.
+배드민턴 운동 기록과 장비, 지출 내역을 디바이스에 저장하는 Flutter 앱입니다.
 
 ## Getting Started
 

@@ -1,4 +1,4 @@
-package com.example.app
+package com.kddhhh23.mintonary
 
 import io.flutter.embedding.android.FlutterActivity
 
