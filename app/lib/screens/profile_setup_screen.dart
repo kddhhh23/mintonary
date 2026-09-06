@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../data/app_repositories.dart';
 import '../data/repositories.dart';
@@ -247,21 +248,34 @@ class _Dropdown extends StatelessWidget {
   final Map<String, String> items;
   final ValueChanged<String?> onChanged;
   @override
-  Widget build(BuildContext context) => DropdownButtonFormField<String>(
-    initialValue: value,
+  Widget build(BuildContext context) => DropdownButtonFormField2<String>(
+    key: ValueKey(value),
+    valueListenable: ValueNotifier(value),
     isExpanded: true,
-    hint: const Text('선택'),
+    hint: const Text('선택', style: TextStyle(color: _gray)),
     decoration: InputDecoration(
       filled: true,
       fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide.none,
       ),
     ),
+    buttonStyleData: const FormFieldButtonStyleData(padding: EdgeInsets.zero),
+    menuItemStyleData: const MenuItemStyleData(
+      useDecorationHorizontalPadding: true,
+    ),
     items: items.entries
-        .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+        .map((e) => DropdownItem(value: e.key, child: Text(e.value)))
         .toList(),
+    dropdownStyleData: DropdownStyleData(
+      maxHeight: 360,
+      anchoredMinHeight: 240,
+      offset: Offset.zero,
+      isOverButton: false,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+    ),
     onChanged: onChanged,
   );
 }

@@ -338,7 +338,7 @@ class _MonthlyCard extends StatelessWidget {
     // 다음 달 0일 = 이번 달 마지막 날
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
     final firstOffset =
-        DateTime(now.year, now.month, 1).weekday - 1; // 1일이 월요일이면 0
+        DateTime(now.year, now.month, 1).weekday % 7; // 1일이 일요일이면 0
     final weeks = ((firstOffset + daysInMonth) / 7)
         .ceil(); // 이번 달이 걸치는 주 수 = 줄 수
 
