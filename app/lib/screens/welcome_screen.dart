@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/privacy_policy_button.dart';
+
 import 'profile_setup_screen.dart';
 
 const _navy = Color(0xFF3D5379);
@@ -63,7 +65,9 @@ class WelcomeScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
                 ),
               ),
-              const SizedBox(height: 36),
+              const SizedBox(height: 8),
+              const Center(child: PrivacyPolicyButton()),
+              const SizedBox(height: 12),
             ],
           ),
         ),
