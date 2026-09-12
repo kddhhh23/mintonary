@@ -5,6 +5,7 @@ import '../models/equipment.dart';
 import '../models/expense.dart';
 import '../models/workout_record.dart';
 import '../services/session.dart';
+import '../widgets/privacy_policy_button.dart';
 import 'equipment_screen.dart';
 import 'expense_screen.dart';
 import 'profile_setup_screen.dart';
@@ -48,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// 홈 탭 내용 — 운동 기록과 장비를 서버에서 함께 불러온다
+/// 홈 탭 내용 — 운동 기록과 장비를 로컬 저장소에서 함께 불러온다
 class _HomeBody extends StatefulWidget {
   const _HomeBody({required this.onGoTab});
 
@@ -133,6 +134,8 @@ class _HomeBodyState extends State<_HomeBody> {
               );
             },
           ),
+          const SizedBox(height: 16),
+          const Center(child: PrivacyPolicyButton()),
         ],
       ),
     );
